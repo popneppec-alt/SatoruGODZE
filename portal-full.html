@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Портал Narxoz College</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="portal-styles.css">
+</head>
+<body>
+  <div class="loading" id="loading">
+    <div class="loading-text">Подключение к Supabase...</div>
+    <div class="loading-status" id="loading-status">Инициализация</div>
+  </div>
+
+  <div id="app">
+    <!-- Страница входа -->
+    <div id="login-page" class="page">
+      <div class="logo">
+        <a href="https://collegenarxoz.kz/" target="_blank" title="Перейти на сайт Narxoz College">
+          <img src="assets/images/narxoz-logo.jpg" alt="Narxoz College" class="logo-image">
+        </a>
+      </div>
+      <div class="stars" id="stars"></div>
+      <div class="login-container">
+        <h1>GRADE JOURNAL</h1>
+        <form id="login-form">
+          <input type="text" id="username" placeholder="Логин" required>
+          <input type="password" id="password" placeholder="Пароль" required>
+          <button type="submit">ВОЙТИ</button>
+        </form>
+        <div id="login-error" class="error"></div>
+        <div class="test-accounts">
+          <p><strong>Тестовые аккаунты:</strong></p>
+          <p>⚪ admin / admin123</p>
+          <p>⚪ teacher / teacher123</p>
+          <p>⚪ student / student123</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Панель управления -->
+    <div id="dashboard-page" class="page">
+      <nav class="navbar">
+        <div class="nav-brand">⚪ ЭЛЕКТРОННЫЙ ЖУРНАЛ</div>
+        <div class="nav-menu" id="nav-menu"></div>
+        <div class="nav-user">
+          <div class="theme-toggle" id="theme-toggle" title="Переключить тему">
+            <span id="theme-icon">🌙</span>
+          </div>
+          <span id="user-name"></span>
+          <button id="logout-btn">ВЫЙТИ</button>
+        </div>
+      </nav>
+      <div class="container">
+        <div id="content" class="panel"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="portal-app.js"></script>
+</body>
+</html>
