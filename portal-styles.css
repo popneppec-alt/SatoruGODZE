@@ -333,3 +333,215 @@ table button { margin: 0 5px; }
 .circular-progress-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 32px; font-weight: 900; color: #000; }
 .circular-subject-name { font-size: 16px; font-weight: 700; color: #000; margin-bottom: 10px; }
 .circular-subject-info { font-size: 12px; color: rgba(0,0,0,0.6); }
+
+/* ============================================
+   АДАПТИВНОСТЬ ДЛЯ МОБИЛЬНЫХ
+   ============================================ */
+
+@media (max-width: 768px) {
+
+  /* Страница входа */
+  #login-page {
+    justify-content: center;
+    padding: 20px;
+    background-attachment: scroll; /* fix для iOS */
+    background-size: cover;
+    background-position: center center;
+    align-items: center;
+  }
+
+  .logo {
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .logo-image {
+    width: 80px;
+    height: 80px;
+  }
+
+  .login-container {
+    max-width: 100%;
+    width: 92%;
+    padding: 30px 24px;
+    margin-top: 100px;
+  }
+
+  .login-container h1 {
+    font-size: 28px;
+    margin-bottom: 24px;
+  }
+
+  input, select, textarea {
+    padding: 14px 16px;
+    font-size: 16px; /* предотвращает zoom на iOS */
+    margin-bottom: 14px;
+  }
+
+  button {
+    padding: 15px;
+    font-size: 13px;
+    min-height: 48px; /* удобно для пальца */
+  }
+
+  .test-accounts {
+    font-size: 11px;
+    padding: 14px;
+  }
+
+  /* Навбар */
+  .navbar {
+    padding: 16px 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .nav-brand {
+    font-size: 16px;
+  }
+
+  .nav-menu {
+    order: 3;
+    width: 100%;
+    margin: 0;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .nav-menu button {
+    padding: 8px 12px;
+    font-size: 11px;
+    min-height: 40px;
+  }
+
+  .nav-user {
+    gap: 8px;
+  }
+
+  .nav-user span {
+    display: none; /* скрываем имя на маленьких экранах */
+  }
+
+  .nav-user button {
+    padding: 10px 16px;
+    font-size: 11px;
+    min-height: 40px;
+  }
+
+  /* Контент */
+  .container {
+    padding: 24px 16px;
+  }
+
+  .panel {
+    padding: 24px 20px;
+  }
+
+  h2 {
+    font-size: 24px;
+    margin-bottom: 24px;
+  }
+
+  /* Статистика */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .stat-card {
+    padding: 24px 16px;
+  }
+
+  .stat-value {
+    font-size: 36px;
+  }
+
+  /* GPA */
+  .gpa-number {
+    font-size: 56px;
+  }
+
+  /* Таблицы — горизонтальный скролл */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  th, td {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+
+  /* Кнопки действий */
+  .btn-group {
+    flex-wrap: wrap;
+  }
+
+  .btn-group button {
+    flex: 1;
+    min-width: 140px;
+    min-height: 48px;
+  }
+
+  button.small {
+    padding: 8px 12px;
+    font-size: 11px;
+    min-height: 36px;
+  }
+
+  /* Круговые прогресс-бары */
+  .circular-progress-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .circular-progress-item {
+    padding: 16px;
+  }
+
+  .circular-progress {
+    width: 110px;
+    height: 110px;
+  }
+
+  .circular-progress svg {
+    width: 110px;
+    height: 110px;
+  }
+
+  .circular-progress-text {
+    font-size: 24px;
+  }
+
+  /* Прогресс-бары */
+  .progress-label {
+    font-size: 14px;
+  }
+
+  .progress-value {
+    font-size: 15px;
+  }
+
+  /* Модальные окна */
+  .modal-content {
+    padding: 24px 20px;
+    width: 95%;
+  }
+}
+
+@media (max-width: 400px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .circular-progress-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .login-container h1 {
+    font-size: 24px;
+  }
+}
