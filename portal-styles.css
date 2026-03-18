@@ -121,26 +121,92 @@ body {
 .login-container { 
   position: relative; 
   z-index: 10; 
-  max-width: 440px; 
+  max-width: 460px; 
   width: 90%; 
   padding: 45px 40px; 
-  background: rgba(255,255,255,0.15); 
-  backdrop-filter: blur(20px); 
-  border: 1px solid rgba(255,255,255,0.3); 
-  border-radius: 20px; 
+  background: rgba(255,255,255,0.08); 
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,0.25); 
+  border-radius: 24px; 
   animation: slideUp 0.8s ease; 
-  box-shadow: 0 20px 80px rgba(0,0,0,0.3); 
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2); 
 }
 @keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
 
 .login-container h1 { 
   text-align: center; 
-  font-size: 40px; 
+  font-size: 36px; 
   font-weight: 900; 
-  letter-spacing: -1px; 
-  margin-bottom: 30px; 
+  letter-spacing: 2px; 
+  margin-bottom: 6px; 
   color: #fff;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+}
+
+.login-subtitle {
+  text-align: center;
+  color: rgba(255,255,255,0.6);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+
+/* Карточки ролей */
+.role-cards {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.role-card {
+  flex: 1;
+  padding: 16px 8px;
+  background: rgba(255,255,255,0.08);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.25s ease;
+  user-select: none;
+}
+
+.role-card:hover {
+  background: rgba(255,255,255,0.15);
+  border-color: rgba(255,255,255,0.4);
+  transform: translateY(-3px);
+}
+
+.role-card:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.role-card.selected {
+  background: rgba(220,20,60,0.35);
+  border-color: #dc143c;
+  box-shadow: 0 0 20px rgba(220,20,60,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+  transform: translateY(-3px);
+}
+
+.role-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+  display: block;
+  transition: transform 0.25s ease;
+}
+
+.role-card:hover .role-icon,
+.role-card.selected .role-icon {
+  transform: scale(1.15);
+}
+
+.role-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.85);
+  text-transform: uppercase;
 }
 
 input, select, textarea { 
@@ -178,23 +244,29 @@ input:focus, select:focus, textarea:focus {
 
 button { 
   width: 100%; 
-  padding: 16px; 
-  background: rgba(220,20,60,0.9); 
+  padding: 18px; 
+  background: #dc143c; 
   color: #fff; 
-  border: 1px solid rgba(255,255,255,0.3); 
-  border-radius: 10px; 
+  border: none; 
+  border-radius: 12px; 
   cursor: pointer; 
-  font-size: 14px; 
+  font-size: 15px; 
   font-weight: 700; 
   text-transform: uppercase; 
-  letter-spacing: 2px; 
-  transition: all 0.3s ease; 
-  margin-top: 10px; 
+  letter-spacing: 3px; 
+  transition: all 0.25s ease; 
+  margin-top: 10px;
+  min-height: 54px;
+  box-shadow: 0 4px 20px rgba(220,20,60,0.4);
 }
 button:hover { 
-  transform: translateY(-3px); 
-  box-shadow: 0 15px 40px rgba(0,0,0,0.3); 
-  background: rgba(220,20,60,1); 
+  transform: translateY(-2px); 
+  box-shadow: 0 8px 30px rgba(220,20,60,0.55); 
+  background: #f01840;
+}
+button:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 10px rgba(220,20,60,0.3);
 }
 
 .test-accounts { 
@@ -369,8 +441,26 @@ table button { margin: 0 5px; }
   }
 
   .login-container h1 {
-    font-size: 28px;
-    margin-bottom: 24px;
+    font-size: 26px;
+    margin-bottom: 4px;
+  }
+
+  .role-cards {
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .role-card {
+    padding: 14px 6px;
+    border-radius: 12px;
+  }
+
+  .role-icon {
+    font-size: 24px;
+  }
+
+  .role-title {
+    font-size: 9px;
   }
 
   input, select, textarea {

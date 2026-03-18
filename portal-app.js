@@ -91,6 +91,18 @@ async function initSupabase() {
   }
 }
 
+// Role selection
+function selectRole(role) {
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+  const card = document.querySelector(`.role-card[data-role="${role}"]`);
+  if (card) card.classList.add('selected');
+
+  const logins = { admin: 'admin', teacher: 'teacher', student: 'student' };
+  const usernameInput = document.getElementById('username');
+  if (usernameInput) usernameInput.value = logins[role] || '';
+  document.getElementById('password').focus();
+}
+
 async function handleLogin(e) {
   e.preventDefault();
   const username = document.getElementById('username').value;

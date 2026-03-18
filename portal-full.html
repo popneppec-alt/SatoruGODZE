@@ -24,18 +24,29 @@
       <div class="stars" id="stars"></div>
       <div class="login-container">
         <h1>GRADE JOURNAL</h1>
+        <p class="login-subtitle">Выберите роль для входа</p>
+
+        <div class="role-cards">
+          <div class="role-card" data-role="admin" onclick="selectRole('admin')">
+            <div class="role-icon">🛡️</div>
+            <div class="role-title">ADMIN</div>
+          </div>
+          <div class="role-card" data-role="teacher" onclick="selectRole('teacher')">
+            <div class="role-icon">📋</div>
+            <div class="role-title">TEACHER</div>
+          </div>
+          <div class="role-card" data-role="student" onclick="selectRole('student')">
+            <div class="role-icon">🎓</div>
+            <div class="role-title">STUDENT</div>
+          </div>
+        </div>
+
         <form id="login-form">
-          <input type="text" id="username" placeholder="Логин" required>
-          <input type="password" id="password" placeholder="Пароль" required>
-          <button type="submit">ВОЙТИ</button>
+          <input type="text" id="username" placeholder="Логин" required autocomplete="username">
+          <input type="password" id="password" placeholder="Пароль" required autocomplete="current-password">
+          <button type="submit" id="login-btn">ВОЙТИ</button>
         </form>
         <div id="login-error" class="error"></div>
-        <div class="test-accounts">
-          <p><strong>Тестовые аккаунты:</strong></p>
-          <p>⚪ admin / admin123</p>
-          <p>⚪ teacher / teacher123</p>
-          <p>⚪ student / student123</p>
-        </div>
       </div>
     </div>
 
