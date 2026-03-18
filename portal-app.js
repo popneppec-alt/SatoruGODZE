@@ -132,17 +132,16 @@ async function handleLogin(e) {
 
 function handleLogout() {
   currentUser = null;
-  
   const loginPage = document.getElementById('login-page');
   const dashboardPage = document.getElementById('dashboard-page');
-  
-  // Плавное исчезновение панели управления
+
   dashboardPage.classList.add('fade-out');
-  
   setTimeout(() => {
     dashboardPage.classList.remove('active', 'fade-out');
     loginPage.classList.add('active');
     document.getElementById('login-form').reset();
+    // сбрасываем выбор роли
+    document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
   }, 400);
 }
 
@@ -182,13 +181,11 @@ function updateNavigation() {
 
 async function showDashboard() {
   currentView = 'dashboard';
-  
-  // Плавное исчезновение страницы входа
   const loginPage = document.getElementById('login-page');
   const dashboardPage = document.getElementById('dashboard-page');
-  
+
   loginPage.classList.add('fade-out');
-  
+
   setTimeout(() => {
     loginPage.classList.remove('active', 'fade-out');
     dashboardPage.classList.add('active');
