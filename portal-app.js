@@ -71,7 +71,7 @@ async function initSupabase() {
     updateLoadingStatus('Готово!');
     setTimeout(() => {
       document.getElementById('loading').style.display = 'none';
-      document.getElementById('login-page').style.display = 'block';
+      document.getElementById('login-page').style.display = 'flex';
       createStars();
     }, 500);
     
