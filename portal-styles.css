@@ -86,7 +86,6 @@ body {
   from { opacity: 1; transform: translateY(0); } 
   to   { opacity: 0; transform: translateY(-16px); } 
 }
-
 #login-page { 
   min-height: 100vh; 
   display: flex; 
@@ -786,12 +785,6 @@ table button { margin: 0 5px; }
 .footer-contacts a:hover { color: #dc143c; }
 
 /* Sticky footer */
-#dashboard-page {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
 #dashboard-page .container {
   flex: 1;
 }

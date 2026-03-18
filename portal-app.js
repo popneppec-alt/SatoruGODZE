@@ -69,10 +69,9 @@ async function initSupabase() {
     }
 
     updateLoadingStatus('Готово!');
-    
     setTimeout(() => {
       document.getElementById('loading').style.display = 'none';
-      document.getElementById('login-page').classList.add('active');
+      document.getElementById('login-page').style.display = 'block';
       createStars();
     }, 500);
     
@@ -132,17 +131,11 @@ async function handleLogin(e) {
 
 function handleLogout() {
   currentUser = null;
-  const loginPage = document.getElementById('login-page');
-  const dashboardPage = document.getElementById('dashboard-page');
-
-  dashboardPage.classList.add('fade-out');
-  setTimeout(() => {
-    dashboardPage.classList.remove('active', 'fade-out');
-    loginPage.classList.add('active');
-    document.getElementById('login-form').reset();
-    // сбрасываем выбор роли
-    document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
-  }, 400);
+  document.getElementById('login-page').style.display = '';
+  document.getElementById('dashboard-page').style.display = 'none';
+  document.getElementById('login-form').reset();
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+  window.scrollTo(0, 0);
 }
 
 
@@ -181,23 +174,16 @@ function updateNavigation() {
 
 async function showDashboard() {
   currentView = 'dashboard';
-  const loginPage = document.getElementById('login-page');
+  document.getElementById('login-page').style.display = 'none';
   const dashboardPage = document.getElementById('dashboard-page');
-
-  // Сначала показываем dashboard, потом скрываем login
-  loginPage.classList.remove('active');
-  dashboardPage.classList.add('active');
+  dashboardPage.style.display = 'flex';
+  window.scrollTo(0, 0);
 
   document.getElementById('user-name').textContent = currentUser.full_name;
-
-  const themeToggle = document.getElementById('theme-toggle');
-  if (themeToggle) {
-    themeToggle.onclick = toggleTheme;
-  }
+  document.getElementById('theme-toggle').onclick = toggleTheme;
+  document.getElementById('logout-btn').onclick = handleLogout;
 
   updateNavigation();
-
-  document.getElementById('logout-btn').onclick = handleLogout;
 
   const content = document.getElementById('content');
   if (currentUser.role === 'admin') {
@@ -208,13 +194,7 @@ async function showDashboard() {
     showStudentDashboard(content);
   }
 }
-    
-    // Добавляем обработчик переключения темы
-    const themeToggle = document.getElementById('theme-toggle');
-    if (themeToggle) {
-      themeToggle.addEventListener('click', toggleTheme);
-    }
-    
+
 
 
 // Admin Dashboard
