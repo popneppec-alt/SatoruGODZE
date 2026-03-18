@@ -68,7 +68,6 @@ body {
 
 .page { 
   display: none; 
-  opacity: 0; 
 }
 .page.active { 
   display: block; 

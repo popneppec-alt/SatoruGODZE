@@ -184,12 +184,30 @@ async function showDashboard() {
   const loginPage = document.getElementById('login-page');
   const dashboardPage = document.getElementById('dashboard-page');
 
-  loginPage.classList.add('fade-out');
+  // Сначала показываем dashboard, потом скрываем login
+  loginPage.classList.remove('active');
+  dashboardPage.classList.add('active');
 
-  setTimeout(() => {
-    loginPage.classList.remove('active', 'fade-out');
-    dashboardPage.classList.add('active');
-    document.getElementById('user-name').textContent = currentUser.full_name;
+  document.getElementById('user-name').textContent = currentUser.full_name;
+
+  const themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) {
+    themeToggle.onclick = toggleTheme;
+  }
+
+  updateNavigation();
+
+  document.getElementById('logout-btn').onclick = handleLogout;
+
+  const content = document.getElementById('content');
+  if (currentUser.role === 'admin') {
+    showAdminDashboard(content);
+  } else if (currentUser.role === 'teacher') {
+    showTeacherDashboard(content);
+  } else if (currentUser.role === 'student') {
+    showStudentDashboard(content);
+  }
+}
     
     // Добавляем обработчик переключения темы
     const themeToggle = document.getElementById('theme-toggle');
@@ -197,23 +215,6 @@ async function showDashboard() {
       themeToggle.addEventListener('click', toggleTheme);
     }
     
-    updateNavigation();
-    
-    setTimeout(() => {
-      document.getElementById('logout-btn').addEventListener('click', handleLogout);
-    }, 100);
-
-    const content = document.getElementById('content');
-
-    if (currentUser.role === 'admin') {
-      showAdminDashboard(content);
-    } else if (currentUser.role === 'teacher') {
-      showTeacherDashboard(content);
-    } else if (currentUser.role === 'student') {
-      showStudentDashboard(content);
-    }
-  }, 400);
-}
 
 
 // Admin Dashboard
