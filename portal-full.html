@@ -25,35 +25,46 @@
       <div class="stars" id="stars"></div>
       <div class="login-container">
         <h1>GRADE JOURNAL</h1>
-        <p class="login-subtitle">Выберите роль для входа</p>
-
-        <div class="role-cards">
-          <div class="role-card" data-role="admin" onclick="selectRole('admin')">
-            <div class="role-icon">🛡️</div>
-            <div class="role-title">ADMIN</div>
-          </div>
-          <div class="role-card" data-role="teacher" onclick="selectRole('teacher')">
-            <div class="role-icon">📋</div>
-            <div class="role-title">TEACHER</div>
-          </div>
-          <div class="role-card" data-role="student" onclick="selectRole('student')">
-            <div class="role-icon">🎓</div>
-            <div class="role-title">STUDENT</div>
-          </div>
-        </div>
+        <p class="login-subtitle">Narxoz College · Электронный журнал</p>
 
         <form id="login-form">
-          <input type="text" id="username" placeholder="Логин" required autocomplete="username">
+          <!-- Кастомный dropdown для выбора пользователя -->
+          <div class="login-dropdown-wrap" id="login-dropdown-wrap">
+            <div class="login-dropdown-trigger" id="login-dropdown-trigger" onclick="toggleLoginDropdown()">
+              <span id="login-dropdown-label">Выберите пользователя</span>
+              <svg class="login-dropdown-arrow" id="login-dropdown-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="login-dropdown-menu" id="login-dropdown-menu">
+              <div class="login-dropdown-item" onclick="selectLoginUser('admin','admin123','🛡️ Администратор')">
+                <span class="login-dropdown-icon">🛡️</span>
+                <div>
+                  <div class="login-dropdown-name">admin</div>
+                  <div class="login-dropdown-role">Администратор</div>
+                </div>
+              </div>
+              <div class="login-dropdown-item" onclick="selectLoginUser('setkali','teacher123','📋 Преподаватель')">
+                <span class="login-dropdown-icon">📋</span>
+                <div>
+                  <div class="login-dropdown-name">setkali</div>
+                  <div class="login-dropdown-role">Преподаватель</div>
+                </div>
+              </div>
+              <div class="login-dropdown-item" onclick="selectLoginUser('asanov','student123','🎓 Студент')">
+                <span class="login-dropdown-icon">🎓</span>
+                <div>
+                  <div class="login-dropdown-name">asanov</div>
+                  <div class="login-dropdown-role">Студент</div>
+                </div>
+              </div>
+            </div>
+            <!-- скрытый input для значения логина -->
+            <input type="hidden" id="username" required>
+          </div>
+
           <input type="password" id="password" placeholder="Пароль" required autocomplete="current-password">
           <button type="submit" id="login-btn">ВОЙТИ</button>
         </form>
         <div id="login-error" class="error" style="display:none"></div>
-        <div style="margin-top:16px; padding:14px 16px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); border-radius:10px; font-size:12px; color:rgba(255,255,255,0.6); line-height:1.8;">
-          <div style="color:rgba(255,255,255,0.4); font-size:10px; letter-spacing:1.5px; margin-bottom:6px;">ТЕСТОВЫЕ АККАУНТЫ</div>
-          <div>🛡️ admin / admin123</div>
-          <div>📋 setkali / teacher123 &nbsp;|&nbsp; kim / teacher123</div>
-          <div>🎓 asanov / student123 &nbsp;|&nbsp; akhmetova / student123</div>
-        </div>
       </div>
     </div>
 

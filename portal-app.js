@@ -92,6 +92,38 @@ async function initSupabase() {
   }
 }
 
+// Login Dropdown
+function toggleLoginDropdown() {
+  const menu = document.getElementById('login-dropdown-menu');
+  const trigger = document.getElementById('login-dropdown-trigger');
+  const arrow = document.getElementById('login-dropdown-arrow');
+  const isOpen = menu.classList.contains('open');
+  menu.classList.toggle('open', !isOpen);
+  trigger.classList.toggle('open', !isOpen);
+  arrow.classList.toggle('open', !isOpen);
+}
+
+function selectLoginUser(username, password, label) {
+  document.getElementById('username').value = username;
+  document.getElementById('password').value = password;
+  document.getElementById('login-dropdown-label').textContent = label;
+  document.getElementById('login-dropdown-trigger').classList.add('selected');
+  // закрыть меню
+  document.getElementById('login-dropdown-menu').classList.remove('open');
+  document.getElementById('login-dropdown-trigger').classList.remove('open');
+  document.getElementById('login-dropdown-arrow').classList.remove('open');
+}
+
+// Закрыть dropdown при клике вне
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('login-dropdown-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('login-dropdown-menu')?.classList.remove('open');
+    document.getElementById('login-dropdown-trigger')?.classList.remove('open');
+    document.getElementById('login-dropdown-arrow')?.classList.remove('open');
+  }
+});
+
 // Role selection — только очищает поле, не подставляет логин
 // (у каждого учителя/студента свой логин в БД)
 function selectRole(role) {
