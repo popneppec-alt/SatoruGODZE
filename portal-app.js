@@ -122,13 +122,16 @@ async function handleLogin(e) {
       .single();
 
     if (error || !users) {
-      document.getElementById('login-error').textContent = 'Неверный логин или пароль';
+      const errEl = document.getElementById('login-error');
+      errEl.textContent = 'Неверный логин или пароль';
+      errEl.style.display = 'block';
       document.getElementById('password').value = '';
       document.getElementById('password').focus();
       return;
     }
 
     currentUser = users;
+    document.getElementById('login-error').style.display = 'none';
     document.getElementById('login-error').textContent = '';
     showDashboard();
   } catch (error) {
