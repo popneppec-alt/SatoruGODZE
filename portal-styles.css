@@ -880,3 +880,129 @@ table button { margin: 0 5px; }
     text-align: left;
   }
 }
+
+/* ============================================
+   АНАЛИТИКА
+   ============================================ */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.analytics-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  transition: box-shadow 0.2s ease;
+}
+.analytics-card:hover { box-shadow: 0 6px 28px rgba(0,0,0,0.1); }
+
+.analytics-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: #111;
+  margin-bottom: 20px;
+}
+
+.analytics-chart-wrap {
+  position: relative;
+  width: 100%;
+}
+
+/* Loading skeleton */
+.analytics-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 180px;
+}
+.analytics-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #f0f0f0;
+  border-top-color: #b01030;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Топ-5 студентов */
+.analytics-top-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.top-student-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.top-medal {
+  font-size: 20px;
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.top-info {
+  flex: 1;
+  min-width: 0;
+}
+.top-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 5px;
+}
+.top-bar-wrap {
+  height: 6px;
+  background: #f0f0f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.top-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #b01030, #dc143c);
+  border-radius: 3px;
+  transition: width 1s ease;
+}
+.top-gpa {
+  font-size: 15px;
+  font-weight: 900;
+  color: #b01030;
+  flex-shrink: 0;
+  min-width: 36px;
+  text-align: right;
+}
+
+/* Легенда */
+.analytics-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 16px;
+  font-size: 12px;
+  color: #555;
+}
+.legend-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+@media (max-width: 768px) {
+  .analytics-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}

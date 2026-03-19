@@ -1189,11 +1189,219 @@ async function showAdminNews() {
 async function showAnalytics() {
   currentView = 'analytics';
   updateNavigation();
-  
+
+  // Показываем скелетон загрузки
   document.getElementById('content').innerHTML = `
     <h2>📊 АНАЛИТИКА</h2>
-    <p style="color: rgba(0,0,0,0.5); text-align: center; margin-top: 40px;">Модуль аналитики в разработке</p>
+    <div class="analytics-grid">
+      ${['Сравнение групп','Топ-5 студентов','Посещаемость','Активность по предметам'].map(t => `
+        <div class="analytics-card">
+          <div class="analytics-card-title">${t}</div>
+          <div class="analytics-loading">
+            <div class="analytics-spinner"></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
   `;
+
+  // Параллельно грузим все данные
+  const [
+    { data: finalGrades },
+    { data: groups },
+    { data: users },
+    { data: attendance },
+    { data: assignments },
+    { data: subjects }
+  ] = await Promise.all([
+    clientSupabase.from('final_grades').select('student_id, subject_id, gpa, grade, groups(name)'),
+    clientSupabase.from('groups').select('id, name'),
+    clientSupabase.from('users').select('id, full_name, role, group_id'),
+    clientSupabase.from('attendance').select('status, date').gte('date', new Date(Date.now() - 7*24*60*60*1000).toISOString().split('T')[0]),
+    clientSupabase.from('assignments').select('subject_id, subjects(name)'),
+    clientSupabase.from('subjects').select('id, name')
+  ]);
+
+  // ── 1. Средний GPA по группам ──
+  const groupGPA = {};
+  (groups || []).forEach(g => { groupGPA[g.id] = { name: g.name, total: 0, count: 0 }; });
+  (users || []).filter(u => u.role === 'student').forEach(u => {
+    const studentGrades = (finalGrades || []).filter(fg => fg.student_id === u.id);
+    if (studentGrades.length > 0 && groupGPA[u.group_id]) {
+      const avg = studentGrades.reduce((s, fg) => s + parseFloat(fg.gpa), 0) / studentGrades.length;
+      groupGPA[u.group_id].total += avg;
+      groupGPA[u.group_id].count += 1;
+    }
+  });
+  const groupLabels = Object.values(groupGPA).map(g => g.name);
+  const groupValues = Object.values(groupGPA).map(g => g.count > 0 ? (g.total / g.count).toFixed(2) : 0);
+
+  // ── 2. Топ-5 студентов ──
+  const studentAvg = (users || []).filter(u => u.role === 'student').map(u => {
+    const sg = (finalGrades || []).filter(fg => fg.student_id === u.id);
+    const avg = sg.length > 0 ? (sg.reduce((s, fg) => s + parseFloat(fg.gpa), 0) / sg.length) : 0;
+    const group = (groups || []).find(g => g.id === u.group_id);
+    return { name: u.full_name, gpa: avg, group: group?.name || '-' };
+  }).sort((a, b) => b.gpa - a.gpa).slice(0, 5);
+
+  // ── 3. Посещаемость за 7 дней ──
+  const presentCount = (attendance || []).filter(a => a.status === 'present').length;
+  const absentCount  = (attendance || []).filter(a => a.status === 'absent').length;
+  const lateCount    = (attendance || []).filter(a => a.status === 'late').length;
+
+  // ── 4. Задания по предметам ──
+  const subjectCount = {};
+  (assignments || []).forEach(a => {
+    const name = a.subjects?.name || `Предмет ${a.subject_id}`;
+    subjectCount[name] = (subjectCount[name] || 0) + 1;
+  });
+  const subjectLabels = Object.keys(subjectCount);
+  const subjectValues = Object.values(subjectCount);
+
+  // Рендерим карточки
+  document.getElementById('content').innerHTML = `
+    <h2>📊 АНАЛИТИКА</h2>
+    <div class="analytics-grid">
+
+      <!-- Карточка 1: Bar Chart — GPA по группам -->
+      <div class="analytics-card">
+        <div class="analytics-card-title">📈 Средний GPA по группам</div>
+        <div class="analytics-chart-wrap">
+          <canvas id="chart-groups"></canvas>
+        </div>
+      </div>
+
+      <!-- Карточка 2: Топ-5 студентов -->
+      <div class="analytics-card">
+        <div class="analytics-card-title">🏆 Топ-5 студентов</div>
+        <div class="analytics-top-list">
+          ${studentAvg.length === 0
+            ? '<p style="color:#aaa;text-align:center;margin-top:20px;">Нет данных</p>'
+            : studentAvg.map((s, i) => {
+                const pct = ((s.gpa / 4) * 100).toFixed(0);
+                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`;
+                return `
+                  <div class="top-student-row">
+                    <span class="top-medal">${medal}</span>
+                    <div class="top-info">
+                      <div class="top-name">${s.name}</div>
+                      <div class="top-bar-wrap">
+                        <div class="top-bar" style="width:${pct}%"></div>
+                      </div>
+                    </div>
+                    <span class="top-gpa">${s.gpa.toFixed(2)}</span>
+                  </div>
+                `;
+              }).join('')
+          }
+        </div>
+      </div>
+
+      <!-- Карточка 3: Pie Chart — Посещаемость -->
+      <div class="analytics-card">
+        <div class="analytics-card-title">✅ Посещаемость (7 дней)</div>
+        <div class="analytics-chart-wrap" style="max-width:260px; margin:0 auto;">
+          <canvas id="chart-attendance"></canvas>
+        </div>
+        <div class="analytics-legend">
+          <span class="legend-dot" style="background:#00c853"></span> Присутствовал: ${presentCount}
+          <span class="legend-dot" style="background:#dc143c; margin-left:16px;"></span> Отсутствовал: ${absentCount}
+          ${lateCount > 0 ? `<span class="legend-dot" style="background:#ffa500; margin-left:16px;"></span> Опоздал: ${lateCount}` : ''}
+        </div>
+      </div>
+
+      <!-- Карточка 4: Bar Chart — Задания по предметам -->
+      <div class="analytics-card">
+        <div class="analytics-card-title">📝 Задания по предметам</div>
+        <div class="analytics-chart-wrap">
+          <canvas id="chart-subjects"></canvas>
+        </div>
+      </div>
+
+    </div>
+  `;
+
+  // Общие настройки Chart.js
+  Chart.defaults.font.family = 'Inter, sans-serif';
+  Chart.defaults.color = '#666';
+
+  // Chart 1 — GPA по группам (Bar)
+  new Chart(document.getElementById('chart-groups'), {
+    type: 'bar',
+    data: {
+      labels: groupLabels,
+      datasets: [{
+        label: 'Средний GPA',
+        data: groupValues,
+        backgroundColor: ['rgba(176,16,48,0.8)', 'rgba(220,20,60,0.6)'],
+        borderColor: ['#b01030', '#dc143c'],
+        borderWidth: 2,
+        borderRadius: 8,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { min: 0, max: 4, ticks: { stepSize: 1 }, grid: { color: '#f0f0f0' } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  // Chart 2 — Посещаемость (Doughnut)
+  if (presentCount + absentCount + lateCount > 0) {
+    const pieData = [presentCount, absentCount];
+    const pieLabels = ['Присутствовал', 'Отсутствовал'];
+    const pieColors = ['#00c853', '#dc143c'];
+    if (lateCount > 0) { pieData.push(lateCount); pieLabels.push('Опоздал'); pieColors.push('#ffa500'); }
+
+    new Chart(document.getElementById('chart-attendance'), {
+      type: 'doughnut',
+      data: {
+        labels: pieLabels,
+        datasets: [{ data: pieData, backgroundColor: pieColors, borderWidth: 0, hoverOffset: 8 }]
+      },
+      options: {
+        responsive: true,
+        cutout: '65%',
+        plugins: { legend: { display: false } }
+      }
+    });
+  } else {
+    document.getElementById('chart-attendance').parentElement.innerHTML =
+      '<p style="color:#aaa;text-align:center;padding:40px 0;">Нет данных за 7 дней</p>';
+  }
+
+  // Chart 3 — Задания по предметам (Horizontal Bar)
+  if (subjectLabels.length > 0) {
+    new Chart(document.getElementById('chart-subjects'), {
+      type: 'bar',
+      data: {
+        labels: subjectLabels,
+        datasets: [{
+          label: 'Заданий',
+          data: subjectValues,
+          backgroundColor: 'rgba(176,16,48,0.75)',
+          borderColor: '#b01030',
+          borderWidth: 2,
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { stepSize: 1 }, grid: { color: '#f0f0f0' } },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+  } else {
+    document.getElementById('chart-subjects').parentElement.innerHTML =
+      '<p style="color:#aaa;text-align:center;padding:40px 0;">Заданий пока нет</p>';
+  }
 }
 
 // Create Assignment (Teacher)
