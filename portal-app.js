@@ -5,6 +5,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 let clientSupabase = null;
 let currentUser = null;
 let currentView = 'dashboard';
+let currentGroupId = null;
+let currentGroupName = null;
 
 // Управление темой
 function initTheme() {
@@ -131,7 +133,7 @@ async function handleLogin(e) {
 
 function handleLogout() {
   currentUser = null;
-  document.getElementById('login-page').style.display = '';
+  document.getElementById('login-page').style.display = 'flex';
   document.getElementById('dashboard-page').style.display = 'none';
   document.getElementById('login-form').reset();
   document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
@@ -246,7 +248,7 @@ async function showTeacherDashboard(content) {
 
   const { data: allStudents } = await clientSupabase
     .from('users')
-    .select('*')
+    .select('*, groups(name)')
     .eq('role', 'student');
 
   content.innerHTML = `
@@ -276,7 +278,7 @@ async function showTeacherDashboard(content) {
         ${allStudents.map(s => `
           <tr>
             <td>${s.full_name}</td>
-            <td>${s.group_id || '-'}</td>
+            <td>${s.groups?.name || '-'}</td>
           </tr>
         `).join('')}
       </tbody>
@@ -1291,6 +1293,8 @@ async function createSchedule() {
 
 // View Group Schedule (Admin)
 async function viewGroupSchedule(groupId, groupName) {
+  currentGroupId = groupId;
+  currentGroupName = groupName;
   const { data: schedules } = await clientSupabase
     .from('schedules')
     .select('*, subjects(name), users(full_name)')
@@ -1345,8 +1349,7 @@ async function deleteSchedule(id) {
   if (error) {
     alert('Ошибка: ' + error.message);
   } else {
-    alert('✅ Занятие удалено!');
-    location.reload(); // Перезагрузка для обновления
+    viewGroupSchedule(currentGroupId, currentGroupName);
   }
 }
 
