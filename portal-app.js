@@ -92,16 +92,19 @@ async function initSupabase() {
   }
 }
 
-// Role selection
+// Role selection — только очищает поле, не подставляет логин
+// (у каждого учителя/студента свой логин в БД)
 function selectRole(role) {
   document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
   const card = document.querySelector(`.role-card[data-role="${role}"]`);
   if (card) card.classList.add('selected');
 
-  const logins = { admin: 'admin', teacher: 'teacher', student: 'student' };
+  // Для admin подставляем логин, для остальных — очищаем поле
   const usernameInput = document.getElementById('username');
-  if (usernameInput) usernameInput.value = logins[role] || '';
-  document.getElementById('password').focus();
+  if (usernameInput) {
+    usernameInput.value = role === 'admin' ? 'admin' : '';
+    usernameInput.focus();
+  }
 }
 
 async function handleLogin(e) {
@@ -566,22 +569,36 @@ async function showGrades() {
 }
 
 
-// Schedule Module
+// Schedule Module — работает для student (по group_id) и teacher (по teacher_id)
 async function showSchedule() {
   currentView = 'schedule';
   updateNavigation();
-  
-  const { data: schedules } = await clientSupabase
-    .from('schedules')
-    .select('*, subjects(name), users(full_name), groups(name)')
-    .eq('group_id', currentUser.group_id)
-    .order('day_of_week', { ascending: true })
-    .order('start_time', { ascending: true });
 
+  let schedules = [];
   const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
-  
+
+  if (currentUser.role === 'teacher') {
+    // Учитель видит своё расписание по всем группам
+    const { data } = await clientSupabase
+      .from('schedules')
+      .select('*, subjects(name), groups(name)')
+      .eq('teacher_id', currentUser.id)
+      .order('day_of_week', { ascending: true })
+      .order('start_time', { ascending: true });
+    schedules = data || [];
+  } else {
+    // Студент видит расписание своей группы
+    const { data } = await clientSupabase
+      .from('schedules')
+      .select('*, subjects(name), users(full_name), groups(name)')
+      .eq('group_id', currentUser.group_id)
+      .order('day_of_week', { ascending: true })
+      .order('start_time', { ascending: true });
+    schedules = data || [];
+  }
+
   let html = '<h2>📅 РАСПИСАНИЕ</h2>';
-  
+
   if (!schedules || schedules.length === 0) {
     html += '<p style="color: rgba(0,0,0,0.5); text-align: center; margin-top: 40px;">Расписание пока не создано</p>';
   } else {
@@ -591,13 +608,17 @@ async function showSchedule() {
         html += `
           <h3 style="margin-top: 40px; margin-bottom: 20px; font-size: 24px; color: rgba(0,0,0,0.8);">${day}</h3>
           <table>
-            <thead><tr><th>Время</th><th>Предмет</th><th>Учитель</th><th>Кабинет</th></tr></thead>
+            <thead><tr>
+              <th>Время</th><th>Предмет</th>
+              ${currentUser.role === 'teacher' ? '<th>Группа</th>' : '<th>Учитель</th>'}
+              <th>Кабинет</th>
+            </tr></thead>
             <tbody>
               ${daySchedule.map(s => `
                 <tr>
                   <td>${s.start_time.substring(0,5)} - ${s.end_time.substring(0,5)}</td>
-                  <td>${s.subjects?.name || 'Неизвестно'}</td>
-                  <td>${s.users?.full_name || 'Неизвестно'}</td>
+                  <td>${s.subjects?.name || '-'}</td>
+                  <td>${currentUser.role === 'teacher' ? (s.groups?.name || '-') : (s.users?.full_name || '-')}</td>
                   <td>${s.room_number || '-'}</td>
                 </tr>
               `).join('')}
@@ -607,7 +628,7 @@ async function showSchedule() {
       }
     });
   }
-  
+
   document.getElementById('content').innerHTML = html;
 }
 
