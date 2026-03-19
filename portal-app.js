@@ -106,8 +106,12 @@ function selectRole(role) {
 
 async function handleLogin(e) {
   e.preventDefault();
-  const username = document.getElementById('username').value;
+  const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
+  const loginBtn = document.getElementById('login-btn');
+
+  loginBtn.textContent = 'ВХОД...';
+  loginBtn.disabled = true;
 
   try {
     const { data: users, error } = await clientSupabase
@@ -119,6 +123,8 @@ async function handleLogin(e) {
 
     if (error || !users) {
       document.getElementById('login-error').textContent = 'Неверный логин или пароль';
+      document.getElementById('password').value = '';
+      document.getElementById('password').focus();
       return;
     }
 
@@ -128,6 +134,9 @@ async function handleLogin(e) {
   } catch (error) {
     console.error('Ошибка входа:', error);
     document.getElementById('login-error').textContent = 'Ошибка входа';
+  } finally {
+    loginBtn.textContent = 'ВОЙТИ';
+    loginBtn.disabled = false;
   }
 }
 
@@ -738,19 +747,29 @@ async function showTeacherAssignments() {
   if (!assignments || assignments.length === 0) {
     html += '<p style="color: rgba(0,0,0,0.5); text-align: center; margin-top: 40px;">Вы еще не создали ни одного задания</p>';
   } else {
+    // Получаем все submissions для заданий этого учителя
+    const assignmentIds = assignments.map(a => a.id);
+    const { data: allSubmissions } = await clientSupabase
+      .from('assignment_submissions')
+      .select('assignment_id')
+      .in('assignment_id', assignmentIds);
+
     html += `
       <table>
         <thead><tr><th>Предмет</th><th>Группа</th><th>Задание</th><th>Срок сдачи</th><th>Сдано</th></tr></thead>
         <tbody>
-          ${assignments.map(a => `
+          ${assignments.map(a => {
+            const count = allSubmissions ? allSubmissions.filter(s => s.assignment_id === a.id).length : 0;
+            const badgeClass = count > 0 ? 'success' : 'warning';
+            return `
             <tr style="cursor: pointer;" onclick="viewAssignmentSubmissions(${a.id})">
               <td>${a.subjects?.name || 'Неизвестно'}</td>
               <td>${a.groups?.name || 'Неизвестно'}</td>
               <td>${a.title}</td>
               <td>${new Date(a.due_date).toLocaleDateString('ru-RU')}</td>
-              <td><span class="badge warning">0</span></td>
-            </tr>
-          `).join('')}
+              <td><span class="badge ${badgeClass}">${count}</span></td>
+            </tr>`;
+          }).join('')}
         </tbody>
       </table>
     `;
@@ -1541,13 +1560,14 @@ async function showSubjectGrades(subjectId, subjectName) {
         ? (studentGrades.reduce((sum, g) => sum + parseFloat(g.gpa), 0) / studentGrades.length).toFixed(2)
         : '-';
       const lastGrade = studentGrades.length > 0 ? studentGrades[studentGrades.length - 1].grade : '-';
+      const gpaNum = parseFloat(avgGPA);
       
       html += `
         <tr>
           <td>${student.full_name}</td>
           <td>${lastGrade}</td>
           <td>${avgGrade}</td>
-          <td><span class="badge ${avgGPA >= 3.0 ? 'success' : avgGPA >= 2.0 ? 'warning' : 'danger'}">${avgGPA}</span></td>
+          <td><span class="badge ${gpaNum >= 3.0 ? 'success' : gpaNum >= 2.0 ? 'warning' : 'danger'}">${avgGPA}</span></td>
         </tr>
       `;
     });
