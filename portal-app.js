@@ -208,7 +208,7 @@ async function showAdminDashboard(content) {
   const teachers = users.filter(u => u.role === 'teacher');
 
   content.innerHTML = `
-    <h2>⚪ ПАНЕЛЬ АДМИНИСТРАТОРА</h2>
+    <h2>ПАНЕЛЬ АДМИНИСТРАТОРА</h2>
     <p style="color: rgba(0,0,0,0.6); margin-bottom: 40px;">Добро пожаловать, ${currentUser.full_name}</p>
     
     <div class="stats-grid">
@@ -252,14 +252,14 @@ async function showTeacherDashboard(content) {
     .eq('role', 'student');
 
   content.innerHTML = `
-    <h2>⚪ ПАНЕЛЬ УЧИТЕЛЯ</h2>
+    <h2>ПАНЕЛЬ УЧИТЕЛЯ</h2>
     <p style="color: rgba(0,0,0,0.6); margin-bottom: 40px;">Добро пожаловать, ${currentUser.full_name}</p>
     
     <h3 style="margin-top: 40px; margin-bottom: 20px; font-size: 24px; color: rgba(0,0,0,0.8);">МОИ ПРЕДМЕТЫ</h3>
     <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 40px;">
       ${teacherSubjects.map(ts => `
         <div class="subject-card">
-          <div style="font-size: 18px; font-weight: 700; color: #000;">⚪ ${ts.subjects.name}</div>
+          <div style="font-size: 18px; font-weight: 700; color: #000;">${ts.subjects.name}</div>
         </div>
       `).join('')}
     </div>
@@ -350,7 +350,7 @@ async function showStudentDashboard(content) {
   const assignmentColor = assignmentPercent >= 80 ? 'high' : assignmentPercent >= 60 ? 'medium' : 'low';
 
   content.innerHTML = `
-    <h2>⚪ ПАНЕЛЬ УЧЕНИКА</h2>
+    <h2>ПАНЕЛЬ УЧЕНИКА</h2>
     <p style="text-align: center; color: rgba(0,0,0,0.6); margin: 40px 0;">Добро пожаловать, ${currentUser.full_name}</p>
     
     <div class="gpa-display-new">
