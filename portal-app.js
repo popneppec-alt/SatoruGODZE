@@ -172,6 +172,7 @@ function updateNavigation() {
       <button onclick="showSchedule()" class="${currentView === 'schedule' ? 'active' : ''}">Расписание</button>
       <button onclick="showTeacherAssignments()" class="${currentView === 'assignments' ? 'active' : ''}">Задания</button>
       <button onclick="showTeacherMaterials()" class="${currentView === 'materials' ? 'active' : ''}">Материалы</button>
+      <button onclick="showTeacherAttendance()" class="${currentView === 'attendance' ? 'active' : ''}">Посещаемость</button>
       <button onclick="showNews()" class="${currentView === 'news' ? 'active' : ''}">Новости</button>
     `;
   } else if (currentUser.role === 'admin') {
@@ -258,43 +259,79 @@ async function showTeacherDashboard(content) {
     .select('*, subjects(*)')
     .eq('teacher_id', currentUser.id);
 
-  const { data: allStudents } = await clientSupabase
-    .from('users')
-    .select('*, groups(name)')
-    .eq('role', 'student');
+  // Получаем только студентов из групп, где учитель ведёт предметы
+  const subjectIds = teacherSubjects ? teacherSubjects.map(ts => ts.subject_id) : [];
+  
+  const { data: mySchedules } = await clientSupabase
+    .from('schedules')
+    .select('group_id')
+    .eq('teacher_id', currentUser.id);
+  
+  const myGroupIds = mySchedules ? [...new Set(mySchedules.map(s => s.group_id))] : [];
+
+  let myStudents = [];
+  if (myGroupIds.length > 0) {
+    const { data: students } = await clientSupabase
+      .from('users')
+      .select('*, groups(name)')
+      .eq('role', 'student')
+      .in('group_id', myGroupIds);
+    myStudents = students || [];
+  }
 
   content.innerHTML = `
     <h2>ПАНЕЛЬ УЧИТЕЛЯ</h2>
     <p style="color: rgba(0,0,0,0.6); margin-bottom: 40px;">Добро пожаловать, ${currentUser.full_name}</p>
     
-    <h3 style="margin-top: 40px; margin-bottom: 20px; font-size: 24px; color: rgba(0,0,0,0.8);">МОИ ПРЕДМЕТЫ</h3>
-    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 40px;">
-      ${teacherSubjects.map(ts => `
-        <div class="subject-card">
-          <div style="font-size: 18px; font-weight: 700; color: #000;">${ts.subjects.name}</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">${teacherSubjects?.length || 0}</div>
+        <div class="stat-label">ПРЕДМЕТОВ</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${myGroupIds.length}</div>
+        <div class="stat-label">ГРУПП</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${myStudents.length}</div>
+        <div class="stat-label">УЧЕНИКОВ</div>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 40px; margin-bottom: 20px; font-size: 20px; color: rgba(0,0,0,0.8);">МОИ ПРЕДМЕТЫ</h3>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 40px;">
+      ${(teacherSubjects || []).map(ts => `
+        <div class="subject-card" onclick="showSubjectGrades(${ts.subject_id}, '${ts.subjects.name}')">
+          <div style="font-size: 16px; font-weight: 700; color: #000;">${ts.subjects.name}</div>
+          <div style="font-size: 11px; color: #888; margin-top: 4px;">Нажмите для журнала</div>
         </div>
       `).join('')}
     </div>
 
-    <h3 style="margin-top: 40px; margin-bottom: 20px; font-size: 24px; color: rgba(0,0,0,0.8);">БЫСТРЫЕ ДЕЙСТВИЯ</h3>
+    <h3 style="margin-top: 40px; margin-bottom: 20px; font-size: 20px; color: rgba(0,0,0,0.8);">БЫСТРЫЕ ДЕЙСТВИЯ</h3>
     <div class="btn-group">
-      <button onclick="showTeacherGrades()">Журнал оценок</button>
-      <button onclick="showTeacherAssignments()">Мои задания</button>
-      <button onclick="showTeacherMaterials()">Мои материалы</button>
+      <button onclick="showTeacherGrades()">📊 Журнал оценок</button>
+      <button onclick="showTeacherAssignments()">📝 Мои задания</button>
+      <button onclick="showTeacherMaterials()">📚 Мои материалы</button>
+      <button onclick="showTeacherAttendance()">✅ Посещаемость</button>
     </div>
 
-    <h3 style="margin-top: 40px; margin-bottom: 20px; font-size: 24px; color: rgba(0,0,0,0.8);">СПИСОК УЧЕНИКОВ</h3>
-    <table>
-      <thead><tr><th>ФИО</th><th>Группа</th></tr></thead>
-      <tbody>
-        ${allStudents.map(s => `
-          <tr>
-            <td>${s.full_name}</td>
-            <td>${s.groups?.name || '-'}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
+    <h3 style="margin-top: 40px; margin-bottom: 20px; font-size: 20px; color: rgba(0,0,0,0.8);">МОИ УЧЕНИКИ</h3>
+    ${myStudents.length === 0 
+      ? '<p style="color:rgba(0,0,0,0.4);">Нет учеников в ваших группах</p>'
+      : `<table>
+          <thead><tr><th>ФИО</th><th>Группа</th><th>Действия</th></tr></thead>
+          <tbody>
+            ${myStudents.map(s => `
+              <tr>
+                <td>${s.full_name}</td>
+                <td>${s.groups?.name || '-'}</td>
+                <td><button class="small" onclick="addGradeForStudent(${s.id}, '${s.full_name.replace(/'/g,"\\'")}')">Поставить оценку</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>`
+    }
   `;
 }
 
@@ -714,7 +751,7 @@ async function showTeacherGrades() {
     .eq('teacher_id', currentUser.id);
 
   let html = '<h2>📊 ЖУРНАЛ ОЦЕНОК</h2>';
-  html += '<p style="color: rgba(0,0,0,0.6); margin-bottom: 20px;">Выберите предмет для просмотра оценок</p>';
+  html += '<p style="color: rgba(0,0,0,0.6); margin-bottom: 20px;">Выберите предмет для просмотра и выставления оценок</p>';
   
   if (!teacherSubjects || teacherSubjects.length === 0) {
     html += '<p style="color: rgba(0,0,0,0.5); text-align: center; margin-top: 40px;">У вас нет назначенных предметов</p>';
@@ -731,6 +768,213 @@ async function showTeacherGrades() {
   }
   
   document.getElementById('content').innerHTML = html;
+}
+
+// Show Subject Grades (Teacher) — с формой добавления оценки
+async function showSubjectGrades(subjectId, subjectName) {
+  // Получаем студентов только из групп учителя
+  const { data: mySchedules } = await clientSupabase
+    .from('schedules')
+    .select('group_id')
+    .eq('teacher_id', currentUser.id);
+  
+  const myGroupIds = mySchedules ? [...new Set(mySchedules.map(s => s.group_id))] : [];
+
+  let students = [];
+  if (myGroupIds.length > 0) {
+    const { data } = await clientSupabase
+      .from('users')
+      .select('*, groups(name)')
+      .eq('role', 'student')
+      .in('group_id', myGroupIds)
+      .order('full_name');
+    students = data || [];
+  } else {
+    // fallback — все студенты
+    const { data } = await clientSupabase.from('users').select('*, groups(name)').eq('role', 'student').order('full_name');
+    students = data || [];
+  }
+
+  const { data: grades } = await clientSupabase
+    .from('grades')
+    .select('*')
+    .eq('subject_id', subjectId)
+    .order('date', { ascending: false });
+
+  let html = `<h2>📊 ${subjectName}</h2>`;
+  html += '<div class="btn-group"><button onclick="showTeacherGrades()">← Назад</button></div>';
+
+  // Форма добавления оценки
+  html += `
+    <div class="panel" style="margin-top: 24px;">
+      <h3 style="font-size: 18px; margin-bottom: 20px; color: #111;">Выставить оценку</h3>
+      <form id="grade-form" style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+        <div style="flex:2; min-width:180px;">
+          <label style="font-size:12px; color:#888; display:block; margin-bottom:6px;">УЧЕНИК</label>
+          <select id="gf-student" required style="margin-bottom:0;">
+            <option value="">Выберите ученика</option>
+            ${students.map(s => `<option value="${s.id}">${s.full_name} (${s.groups?.name || '-'})</option>`).join('')}
+          </select>
+        </div>
+        <div style="flex:1; min-width:100px;">
+          <label style="font-size:12px; color:#888; display:block; margin-bottom:6px;">ОЦЕНКА (0-100)</label>
+          <input type="number" id="gf-grade" min="0" max="100" placeholder="85" required style="margin-bottom:0;">
+        </div>
+        <div style="flex:1; min-width:120px;">
+          <label style="font-size:12px; color:#888; display:block; margin-bottom:6px;">ТИП</label>
+          <select id="gf-type" style="margin-bottom:0;">
+            <option value="Практика">Практика</option>
+            <option value="Контрольная">Контрольная</option>
+            <option value="Лабораторная">Лабораторная</option>
+            <option value="Экзамен">Экзамен</option>
+            <option value="Домашняя работа">Домашняя работа</option>
+          </select>
+        </div>
+        <div style="flex:1; min-width:130px;">
+          <label style="font-size:12px; color:#888; display:block; margin-bottom:6px;">ДАТА</label>
+          <input type="date" id="gf-date" value="${new Date().toISOString().split('T')[0]}" required style="margin-bottom:0;">
+        </div>
+        <div>
+          <button type="submit" style="width:auto; padding:14px 24px; min-height:unset; margin:0;">Сохранить</button>
+        </div>
+      </form>
+      <div id="grade-form-msg" style="margin-top:12px; font-size:13px;"></div>
+    </div>
+  `;
+
+  // Таблица оценок
+  html += `<h3 style="margin-top:32px; margin-bottom:16px; font-size:18px; color:#111;">Журнал оценок</h3>`;
+  if (!students || students.length === 0) {
+    html += '<p style="color:rgba(0,0,0,0.4);">Нет учеников</p>';
+  } else {
+    html += `
+      <table>
+        <thead><tr><th>Ученик</th><th>Группа</th><th>Последняя оценка</th><th>Средний балл</th><th>GPA</th></tr></thead>
+        <tbody>
+    `;
+    students.forEach(student => {
+      const sg = grades ? grades.filter(g => g.student_id === student.id) : [];
+      const avg = sg.length > 0 ? (sg.reduce((s,g) => s + g.grade, 0) / sg.length).toFixed(1) : '-';
+      const avgGPA = sg.length > 0 ? (sg.reduce((s,g) => s + parseFloat(g.gpa), 0) / sg.length).toFixed(2) : '-';
+      const last = sg.length > 0 ? sg[0].grade : '-';
+      const gpaNum = parseFloat(avgGPA);
+      html += `
+        <tr>
+          <td>${student.full_name}</td>
+          <td>${student.groups?.name || '-'}</td>
+          <td>${last}</td>
+          <td>${avg}</td>
+          <td><span class="badge ${gpaNum >= 3.0 ? 'success' : gpaNum >= 2.0 ? 'warning' : 'danger'}">${avgGPA}</span></td>
+        </tr>
+      `;
+    });
+    html += '</tbody></table>';
+  }
+
+  document.getElementById('content').innerHTML = html;
+
+  // Обработчик формы
+  document.getElementById('grade-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const studentId = parseInt(document.getElementById('gf-student').value);
+    const gradeVal = parseInt(document.getElementById('gf-grade').value);
+    const gradeType = document.getElementById('gf-type').value;
+    const date = document.getElementById('gf-date').value;
+    const msg = document.getElementById('grade-form-msg');
+
+    // Конвертируем балл в GPA
+    const gpa = gradeVal >= 90 ? 4.0 : gradeVal >= 75 ? 3.0 : gradeVal >= 60 ? 2.0 : 1.0;
+
+    const { error } = await clientSupabase.from('grades').insert({
+      student_id: studentId,
+      subject_id: subjectId,
+      teacher_id: currentUser.id,
+      grade: gradeVal,
+      gpa: gpa,
+      grade_type: gradeType,
+      date: date
+    });
+
+    if (error) {
+      msg.style.color = '#dc143c';
+      msg.textContent = 'Ошибка: ' + error.message;
+    } else {
+      msg.style.color = '#00a846';
+      msg.textContent = '✅ Оценка сохранена!';
+      document.getElementById('gf-grade').value = '';
+      // Обновляем страницу через 1 сек
+      setTimeout(() => showSubjectGrades(subjectId, subjectName), 1000);
+    }
+  });
+}
+
+// Быстрое добавление оценки со страницы дашборда
+async function addGradeForStudent(studentId, studentName) {
+  const { data: teacherSubjects } = await clientSupabase
+    .from('teacher_subjects')
+    .select('*, subjects(*)')
+    .eq('teacher_id', currentUser.id);
+
+  const html = `
+    <h2>Оценка для ${studentName}</h2>
+    <div class="btn-group"><button onclick="showDashboard()">← Назад</button></div>
+    <div class="panel" style="margin-top:24px; max-width:600px;">
+      <form id="quick-grade-form">
+        <label style="font-size:12px; color:#888; display:block; margin-bottom:6px;">ПРЕДМЕТ</label>
+        <select id="qgf-subject" required>
+          <option value="">Выберите предмет</option>
+          ${(teacherSubjects || []).map(ts => `<option value="${ts.subject_id}">${ts.subjects.name}</option>`).join('')}
+        </select>
+        <label style="font-size:12px; color:#888; display:block; margin-bottom:6px;">ОЦЕНКА (0-100)</label>
+        <input type="number" id="qgf-grade" min="0" max="100" placeholder="85" required>
+        <label style="font-size:12px; color:#888; display:block; margin-bottom:6px;">ТИП</label>
+        <select id="qgf-type">
+          <option value="Практика">Практика</option>
+          <option value="Контрольная">Контрольная</option>
+          <option value="Лабораторная">Лабораторная</option>
+          <option value="Экзамен">Экзамен</option>
+          <option value="Домашняя работа">Домашняя работа</option>
+        </select>
+        <label style="font-size:12px; color:#888; display:block; margin-bottom:6px;">ДАТА</label>
+        <input type="date" id="qgf-date" value="${new Date().toISOString().split('T')[0]}" required>
+        <div class="btn-group">
+          <button type="submit">Сохранить оценку</button>
+          <button type="button" onclick="showDashboard()">Отмена</button>
+        </div>
+      </form>
+      <div id="qgf-msg" style="margin-top:12px; font-size:13px;"></div>
+    </div>
+  `;
+  document.getElementById('content').innerHTML = html;
+
+  document.getElementById('quick-grade-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const subjectId = parseInt(document.getElementById('qgf-subject').value);
+    const gradeVal = parseInt(document.getElementById('qgf-grade').value);
+    const gradeType = document.getElementById('qgf-type').value;
+    const date = document.getElementById('qgf-date').value;
+    const gpa = gradeVal >= 90 ? 4.0 : gradeVal >= 75 ? 3.0 : gradeVal >= 60 ? 2.0 : 1.0;
+    const msg = document.getElementById('qgf-msg');
+
+    const { error } = await clientSupabase.from('grades').insert({
+      student_id: studentId,
+      subject_id: subjectId,
+      teacher_id: currentUser.id,
+      grade: gradeVal,
+      gpa: gpa,
+      grade_type: gradeType,
+      date: date
+    });
+
+    if (error) {
+      msg.style.color = '#dc143c';
+      msg.textContent = 'Ошибка: ' + error.message;
+    } else {
+      msg.style.color = '#00a846';
+      msg.textContent = '✅ Оценка сохранена!';
+      setTimeout(() => showDashboard(), 1000);
+    }
+  });
 }
 
 // Teacher Assignments Module
@@ -1529,61 +1773,99 @@ async function deleteNews(id) {
   }
 }
 
-// Show Subject Grades (Teacher)
-async function showSubjectGrades(subjectId, subjectName) {
-  const { data: students } = await clientSupabase
-    .from('users')
-    .select('*')
-    .eq('role', 'student')
-    .order('full_name');
-
-  const { data: grades } = await clientSupabase
-    .from('grades')
-    .select('*')
-    .eq('subject_id', subjectId);
-
-  let html = `<h2>📊 ОЦЕНКИ ПО ПРЕДМЕТУ: ${subjectName}</h2>`;
-  html += '<div class="btn-group"><button onclick="showTeacherGrades()">← Назад</button></div>';
-  
-  if (!students || students.length === 0) {
-    html += '<p style="color: rgba(0,0,0,0.5); text-align: center; margin-top: 40px;">Нет учеников</p>';
-  } else {
-    html += `
-      <table>
-        <thead><tr><th>Ученик</th><th>Последняя оценка</th><th>Средний балл</th><th>GPA</th></tr></thead>
-        <tbody>
-    `;
-    
-    students.forEach(student => {
-      const studentGrades = grades.filter(g => g.student_id === student.id);
-      const avgGrade = studentGrades.length > 0 
-        ? (studentGrades.reduce((sum, g) => sum + g.grade, 0) / studentGrades.length).toFixed(1)
-        : '-';
-      const avgGPA = studentGrades.length > 0
-        ? (studentGrades.reduce((sum, g) => sum + parseFloat(g.gpa), 0) / studentGrades.length).toFixed(2)
-        : '-';
-      const lastGrade = studentGrades.length > 0 ? studentGrades[studentGrades.length - 1].grade : '-';
-      const gpaNum = parseFloat(avgGPA);
-      
-      html += `
-        <tr>
-          <td>${student.full_name}</td>
-          <td>${lastGrade}</td>
-          <td>${avgGrade}</td>
-          <td><span class="badge ${gpaNum >= 3.0 ? 'success' : gpaNum >= 2.0 ? 'warning' : 'danger'}">${avgGPA}</span></td>
-        </tr>
-      `;
-    });
-    
-    html += '</tbody></table>';
-  }
-  
-  document.getElementById('content').innerHTML = html;
-}
-
 // Show Assignment Detail (Student)
 function showAssignmentDetail(id) {
   alert(`Детали задания ID: ${id} - функция в разработке`);
+}
+
+// Teacher Attendance Module
+async function showTeacherAttendance() {
+  currentView = 'attendance';
+  updateNavigation();
+
+  const { data: teacherSubjects } = await clientSupabase
+    .from('teacher_subjects')
+    .select('*, subjects(*)')
+    .eq('teacher_id', currentUser.id);
+
+  const { data: mySchedules } = await clientSupabase
+    .from('schedules')
+    .select('group_id')
+    .eq('teacher_id', currentUser.id);
+
+  const myGroupIds = mySchedules ? [...new Set(mySchedules.map(s => s.group_id))] : [];
+
+  let students = [];
+  if (myGroupIds.length > 0) {
+    const { data } = await clientSupabase
+      .from('users')
+      .select('*, groups(name)')
+      .eq('role', 'student')
+      .in('group_id', myGroupIds)
+      .order('full_name');
+    students = data || [];
+  }
+
+  let html = '<h2>✅ ПОСЕЩАЕМОСТЬ</h2>';
+  html += `
+    <div class="panel" style="margin-top:24px;">
+      <h3 style="font-size:18px; margin-bottom:20px; color:#111;">Отметить посещаемость</h3>
+      <form id="attendance-form" style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+        <div style="flex:2; min-width:180px;">
+          <label style="font-size:12px; color:#888; display:block; margin-bottom:6px;">УЧЕНИК</label>
+          <select id="af-student" required style="margin-bottom:0;">
+            <option value="">Выберите ученика</option>
+            ${students.map(s => `<option value="${s.id}">${s.full_name} (${s.groups?.name || '-'})</option>`).join('')}
+          </select>
+        </div>
+        <div style="flex:1; min-width:140px;">
+          <label style="font-size:12px; color:#888; display:block; margin-bottom:6px;">ПРЕДМЕТ</label>
+          <select id="af-subject" required style="margin-bottom:0;">
+            <option value="">Предмет</option>
+            ${(teacherSubjects || []).map(ts => `<option value="${ts.subject_id}">${ts.subjects.name}</option>`).join('')}
+          </select>
+        </div>
+        <div style="flex:1; min-width:120px;">
+          <label style="font-size:12px; color:#888; display:block; margin-bottom:6px;">СТАТУС</label>
+          <select id="af-status" style="margin-bottom:0;">
+            <option value="present">Присутствует</option>
+            <option value="absent">Отсутствует</option>
+            <option value="late">Опоздал</option>
+          </select>
+        </div>
+        <div style="flex:1; min-width:130px;">
+          <label style="font-size:12px; color:#888; display:block; margin-bottom:6px;">ДАТА</label>
+          <input type="date" id="af-date" value="${new Date().toISOString().split('T')[0]}" required style="margin-bottom:0;">
+        </div>
+        <div>
+          <button type="submit" style="width:auto; padding:14px 24px; min-height:unset; margin:0;">Сохранить</button>
+        </div>
+      </form>
+      <div id="af-msg" style="margin-top:12px; font-size:13px;"></div>
+    </div>
+  `;
+
+  document.getElementById('content').innerHTML = html;
+
+  document.getElementById('attendance-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('af-msg');
+    const { error } = await clientSupabase.from('attendance').upsert({
+      student_id: parseInt(document.getElementById('af-student').value),
+      subject_id: parseInt(document.getElementById('af-subject').value),
+      date: document.getElementById('af-date').value,
+      status: document.getElementById('af-status').value
+    }, { onConflict: 'student_id,subject_id,date' });
+
+    if (error) {
+      msg.style.color = '#dc143c';
+      msg.textContent = 'Ошибка: ' + error.message;
+    } else {
+      msg.style.color = '#00a846';
+      msg.textContent = '✅ Посещаемость сохранена!';
+      setTimeout(() => { msg.textContent = ''; }, 2000);
+    }
+  });
 }
 
 // View Assignment Submissions (Teacher)
