@@ -145,6 +145,14 @@ async function handleLogin(e) {
   const password = document.getElementById('password').value;
   const loginBtn = document.getElementById('login-btn');
 
+  // Проверка — пользователь выбран из dropdown
+  if (!username) {
+    const errEl = document.getElementById('login-error');
+    errEl.textContent = 'Выберите пользователя из списка';
+    errEl.style.display = 'block';
+    return;
+  }
+
   loginBtn.textContent = 'ВХОД...';
   loginBtn.disabled = true;
 
@@ -183,7 +191,15 @@ function handleLogout() {
   document.getElementById('login-page').style.display = 'flex';
   document.getElementById('dashboard-page').style.display = 'none';
   document.getElementById('login-form').reset();
-  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+  // Сброс dropdown
+  const label = document.getElementById('login-dropdown-label');
+  if (label) label.textContent = 'Выберите пользователя';
+  const trigger = document.getElementById('login-dropdown-trigger');
+  if (trigger) trigger.classList.remove('selected', 'open');
+  const menu = document.getElementById('login-dropdown-menu');
+  if (menu) menu.classList.remove('open');
+  const arrow = document.getElementById('login-dropdown-arrow');
+  if (arrow) arrow.classList.remove('open');
   window.scrollTo(0, 0);
 }
 
