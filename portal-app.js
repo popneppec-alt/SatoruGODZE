@@ -1,3 +1,123 @@
+// ── i18n ──────────────────────────────────────────────
+const TRANSLATIONS = {
+  ru: {
+    brand: 'ЭЛЕКТРОННЫЙ ЖУРНАЛ',
+    logout: 'ВЫЙТИ',
+    nav: {
+      home: 'Главная', users: 'Пользователи', schedule: 'Расписание',
+      news: 'Новости', analytics: 'Аналитика', grades: 'Оценки',
+      journal: 'Журнал', assignments: 'Задания', materials: 'Материалы',
+      attendance: 'Посещаемость'
+    },
+    dash: {
+      admin: 'ПАНЕЛЬ АДМИНИСТРАТОРА', teacher: 'ПАНЕЛЬ УЧИТЕЛЯ', student: 'ПАНЕЛЬ УЧЕНИКА',
+      welcome: 'Добро пожаловать',
+      students: 'УЧЕНИКОВ', teachers: 'УЧИТЕЛЕЙ', subjects: 'ПРЕДМЕТОВ', groups: 'ГРУПП',
+      mySubjects: 'МОИ ПРЕДМЕТЫ', myStudents: 'МОИ УЧЕНИКИ', quickActions: 'БЫСТРЫЕ ДЕЙСТВИЯ',
+      gradeBtn: 'Поставить оценку', clickJournal: 'Нажмите для журнала',
+      manageUsers: 'Управление пользователями', manageSchedule: 'Управление расписанием',
+      manageNews: 'Управление новостями',
+      journalBtn: '📊 Журнал оценок', assignmentsBtn: '📝 Мои задания',
+      materialsBtn: '📚 Мои материалы', attendanceBtn: '✅ Посещаемость',
+      noStudents: 'Нет учеников в ваших группах',
+      gpaLabel: 'Средний GPA', performance: '📊 ОБЩАЯ УСПЕВАЕМОСТЬ',
+      attendanceLbl: 'Посещаемость', assignmentLbl: 'Выполнение заданий',
+      bySubject: '📚 УСПЕВАЕМОСТЬ ПО ПРЕДМЕТАМ',
+      gradesBtn: 'Мои оценки', scheduleBtn: 'Расписание',
+      assignmentsBtn2: 'Задания', materialsBtn2: 'Материалы'
+    }
+  },
+  kz: {
+    brand: 'ЭЛЕКТРОНДЫҚ ЖУРНАЛ',
+    logout: 'ШЫҒУ',
+    nav: {
+      home: 'Басты бет', users: 'Пайдаланушылар', schedule: 'Кесте',
+      news: 'Жаңалықтар', analytics: 'Аналитика', grades: 'Бағалар',
+      journal: 'Журнал', assignments: 'Тапсырмалар', materials: 'Материалдар',
+      attendance: 'Қатысу'
+    },
+    dash: {
+      admin: 'ӘКІМШІ ТАҚТАСЫ', teacher: 'МҰҒАЛІМ ТАҚТАСЫ', student: 'ОҚУШЫ ТАҚТАСЫ',
+      welcome: 'Қош келдіңіз',
+      students: 'ОҚУШЫЛАР', teachers: 'МҰҒАЛІМДЕР', subjects: 'ПӘНДЕР', groups: 'ТОПТАР',
+      mySubjects: 'МЕНІҢ ПӘНДЕРІМ', myStudents: 'МЕНІҢ ОҚУШЫЛАРЫМ', quickActions: 'ЖЫЛДАМ ӘРЕКЕТТЕР',
+      gradeBtn: 'Баға қою', clickJournal: 'Журнал үшін басыңыз',
+      manageUsers: 'Пайдаланушыларды басқару', manageSchedule: 'Кестені басқару',
+      manageNews: 'Жаңалықтарды басқару',
+      journalBtn: '📊 Бағалар журналы', assignmentsBtn: '📝 Тапсырмаларым',
+      materialsBtn: '📚 Материалдарым', attendanceBtn: '✅ Қатысу',
+      noStudents: 'Топтарыңызда оқушылар жоқ',
+      gpaLabel: 'Орташа GPA', performance: '📊 ЖАЛПЫ ҮЛГЕРІМ',
+      attendanceLbl: 'Қатысу', assignmentLbl: 'Тапсырмаларды орындау',
+      bySubject: '📚 ПӘНДЕР БОЙЫНША ҮЛГЕРІМ',
+      gradesBtn: 'Бағаларым', scheduleBtn: 'Кесте',
+      assignmentsBtn2: 'Тапсырмалар', materialsBtn2: 'Материалдар'
+    }
+  },
+  en: {
+    brand: 'GRADE JOURNAL',
+    logout: 'LOGOUT',
+    nav: {
+      home: 'Home', users: 'Users', schedule: 'Schedule',
+      news: 'News', analytics: 'Analytics', grades: 'Grades',
+      journal: 'Journal', assignments: 'Assignments', materials: 'Materials',
+      attendance: 'Attendance'
+    },
+    dash: {
+      admin: 'ADMIN PANEL', teacher: 'TEACHER PANEL', student: 'STUDENT PANEL',
+      welcome: 'Welcome',
+      students: 'STUDENTS', teachers: 'TEACHERS', subjects: 'SUBJECTS', groups: 'GROUPS',
+      mySubjects: 'MY SUBJECTS', myStudents: 'MY STUDENTS', quickActions: 'QUICK ACTIONS',
+      gradeBtn: 'Grade student', clickJournal: 'Click to open journal',
+      manageUsers: 'Manage users', manageSchedule: 'Manage schedule',
+      manageNews: 'Manage news',
+      journalBtn: '📊 Grade journal', assignmentsBtn: '📝 My assignments',
+      materialsBtn: '📚 My materials', attendanceBtn: '✅ Attendance',
+      noStudents: 'No students in your groups',
+      gpaLabel: 'Average GPA', performance: '📊 OVERALL PERFORMANCE',
+      attendanceLbl: 'Attendance', assignmentLbl: 'Assignment completion',
+      bySubject: '📚 PERFORMANCE BY SUBJECT',
+      gradesBtn: 'My grades', scheduleBtn: 'Schedule',
+      assignmentsBtn2: 'Assignments', materialsBtn2: 'Materials'
+    }
+  }
+};
+
+let currentLang = localStorage.getItem('lang') || 'ru';
+
+function t(path) {
+  const keys = path.split('.');
+  let val = TRANSLATIONS[currentLang];
+  for (const k of keys) val = val?.[k];
+  return val || path;
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('lang', lang);
+  // Обновляем активную кнопку языка
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
+  // Обновляем бренд
+  const brand = document.getElementById('nav-brand');
+  if (brand) brand.textContent = t('brand');
+  // Обновляем кнопку выхода
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) logoutBtn.textContent = t('logout');
+  // Перерисовываем навигацию и текущий вид
+  if (currentUser) {
+    updateNavigation();
+    const content = document.getElementById('content');
+    if (currentView === 'dashboard') {
+      if (currentUser.role === 'admin') showAdminDashboard(content);
+      else if (currentUser.role === 'teacher') showTeacherDashboard(content);
+      else showStudentDashboard(content);
+    }
+  }
+}
+// ── end i18n ───────────────────────────────────────────
+
 // Supabase Configuration
 const SUPABASE_URL = 'https://mfktgnwlqjytqjxrvowi.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ma3RnbndscWp5dHFqeHJ2b3dpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNjE2MjYsImV4cCI6MjA4NzkzNzYyNn0.WeFMGZrSk-0EGahmyBC1PS5Byv_NwQJCPLOR1aZSr80';
@@ -207,34 +327,34 @@ function handleLogout() {
 // Navigation
 function updateNavigation() {
   const navMenu = document.getElementById('nav-menu');
-  let menuHTML = '<button onclick="showDashboard()" class="' + (currentView === 'dashboard' ? 'active' : '') + '">Главная</button>';
-  
+  let menuHTML = `<button onclick="showDashboard()" class="${currentView === 'dashboard' ? 'active' : ''}">${t('nav.home')}</button>`;
+
   if (currentUser.role === 'student') {
     menuHTML += `
-      <button onclick="showGrades()" class="${currentView === 'grades' ? 'active' : ''}">Оценки</button>
-      <button onclick="showSchedule()" class="${currentView === 'schedule' ? 'active' : ''}">Расписание</button>
-      <button onclick="showAssignments()" class="${currentView === 'assignments' ? 'active' : ''}">Задания</button>
-      <button onclick="showMaterials()" class="${currentView === 'materials' ? 'active' : ''}">Материалы</button>
-      <button onclick="showNews()" class="${currentView === 'news' ? 'active' : ''}">Новости</button>
+      <button onclick="showGrades()" class="${currentView === 'grades' ? 'active' : ''}">${t('nav.grades')}</button>
+      <button onclick="showSchedule()" class="${currentView === 'schedule' ? 'active' : ''}">${t('nav.schedule')}</button>
+      <button onclick="showAssignments()" class="${currentView === 'assignments' ? 'active' : ''}">${t('nav.assignments')}</button>
+      <button onclick="showMaterials()" class="${currentView === 'materials' ? 'active' : ''}">${t('nav.materials')}</button>
+      <button onclick="showNews()" class="${currentView === 'news' ? 'active' : ''}">${t('nav.news')}</button>
     `;
   } else if (currentUser.role === 'teacher') {
     menuHTML += `
-      <button onclick="showTeacherGrades()" class="${currentView === 'grades' ? 'active' : ''}">Журнал</button>
-      <button onclick="showSchedule()" class="${currentView === 'schedule' ? 'active' : ''}">Расписание</button>
-      <button onclick="showTeacherAssignments()" class="${currentView === 'assignments' ? 'active' : ''}">Задания</button>
-      <button onclick="showTeacherMaterials()" class="${currentView === 'materials' ? 'active' : ''}">Материалы</button>
-      <button onclick="showTeacherAttendance()" class="${currentView === 'attendance' ? 'active' : ''}">Посещаемость</button>
-      <button onclick="showNews()" class="${currentView === 'news' ? 'active' : ''}">Новости</button>
+      <button onclick="showTeacherGrades()" class="${currentView === 'grades' ? 'active' : ''}">${t('nav.journal')}</button>
+      <button onclick="showSchedule()" class="${currentView === 'schedule' ? 'active' : ''}">${t('nav.schedule')}</button>
+      <button onclick="showTeacherAssignments()" class="${currentView === 'assignments' ? 'active' : ''}">${t('nav.assignments')}</button>
+      <button onclick="showTeacherMaterials()" class="${currentView === 'materials' ? 'active' : ''}">${t('nav.materials')}</button>
+      <button onclick="showTeacherAttendance()" class="${currentView === 'attendance' ? 'active' : ''}">${t('nav.attendance')}</button>
+      <button onclick="showNews()" class="${currentView === 'news' ? 'active' : ''}">${t('nav.news')}</button>
     `;
   } else if (currentUser.role === 'admin') {
     menuHTML += `
-      <button onclick="showUsers()" class="${currentView === 'users' ? 'active' : ''}">Пользователи</button>
-      <button onclick="showAdminSchedule()" class="${currentView === 'schedule' ? 'active' : ''}">Расписание</button>
-      <button onclick="showAdminNews()" class="${currentView === 'news' ? 'active' : ''}">Новости</button>
-      <button onclick="showAnalytics()" class="${currentView === 'analytics' ? 'active' : ''}">Аналитика</button>
+      <button onclick="showUsers()" class="${currentView === 'users' ? 'active' : ''}">${t('nav.users')}</button>
+      <button onclick="showAdminSchedule()" class="${currentView === 'schedule' ? 'active' : ''}">${t('nav.schedule')}</button>
+      <button onclick="showAdminNews()" class="${currentView === 'news' ? 'active' : ''}">${t('nav.news')}</button>
+      <button onclick="showAnalytics()" class="${currentView === 'analytics' ? 'active' : ''}">${t('nav.analytics')}</button>
     `;
   }
-  
+
   navMenu.innerHTML = menuHTML;
 }
 
@@ -246,8 +366,17 @@ async function showDashboard() {
   window.scrollTo(0, 0);
 
   document.getElementById('user-name').textContent = currentUser.full_name;
-  document.getElementById('theme-toggle').onclick = toggleTheme;
   document.getElementById('logout-btn').onclick = handleLogout;
+  document.getElementById('logout-btn').textContent = t('logout');
+
+  // Бренд
+  const brand = document.getElementById('nav-brand');
+  if (brand) brand.textContent = t('brand');
+
+  // Инициализируем кнопки языка
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === currentLang);
+  });
 
   updateNavigation();
 
@@ -272,33 +401,19 @@ async function showAdminDashboard(content) {
   const teachers = users.filter(u => u.role === 'teacher');
 
   content.innerHTML = `
-    <h2>ПАНЕЛЬ АДМИНИСТРАТОРА</h2>
-    <p style="color: rgba(0,0,0,0.6); margin-bottom: 40px;">Добро пожаловать, ${currentUser.full_name}</p>
-    
+    <h2>${t('dash.admin')}</h2>
+    <p style="color: rgba(0,0,0,0.6); margin-bottom: 40px;">${t('dash.welcome')}, ${currentUser.full_name}</p>
     <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-value">${students.length}</div>
-        <div class="stat-label">УЧЕНИКОВ</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value">${teachers.length}</div>
-        <div class="stat-label">УЧИТЕЛЕЙ</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value">${subjects.length}</div>
-        <div class="stat-label">ПРЕДМЕТОВ</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value">${groups.length}</div>
-        <div class="stat-label">ГРУПП</div>
-      </div>
+      <div class="stat-card"><div class="stat-value">${students.length}</div><div class="stat-label">${t('dash.students')}</div></div>
+      <div class="stat-card"><div class="stat-value">${teachers.length}</div><div class="stat-label">${t('dash.teachers')}</div></div>
+      <div class="stat-card"><div class="stat-value">${subjects.length}</div><div class="stat-label">${t('dash.subjects')}</div></div>
+      <div class="stat-card"><div class="stat-value">${groups.length}</div><div class="stat-label">${t('dash.groups')}</div></div>
     </div>
-
-    <h3 style="margin-top: 60px; margin-bottom: 30px; font-size: 24px; color: rgba(0,0,0,0.8);">БЫСТРЫЕ ДЕЙСТВИЯ</h3>
+    <h3 style="margin-top: 60px; margin-bottom: 30px; font-size: 24px; color: rgba(0,0,0,0.8);">${t('dash.quickActions')}</h3>
     <div class="btn-group">
-      <button onclick="showUsers()">Управление пользователями</button>
-      <button onclick="showAdminSchedule()">Управление расписанием</button>
-      <button onclick="showAdminNews()">Управление новостями</button>
+      <button onclick="showUsers()">${t('dash.manageUsers')}</button>
+      <button onclick="showAdminSchedule()">${t('dash.manageSchedule')}</button>
+      <button onclick="showAdminNews()">${t('dash.manageNews')}</button>
     </div>
   `;
 }
@@ -306,78 +421,57 @@ async function showAdminDashboard(content) {
 // Teacher Dashboard  
 async function showTeacherDashboard(content) {
   const { data: teacherSubjects } = await clientSupabase
-    .from('teacher_subjects')
-    .select('*, subjects(*)')
-    .eq('teacher_id', currentUser.id);
+    .from('teacher_subjects').select('*, subjects(*)').eq('teacher_id', currentUser.id);
 
-  // Получаем только студентов из групп, где учитель ведёт предметы
-  const subjectIds = teacherSubjects ? teacherSubjects.map(ts => ts.subject_id) : [];
-  
   const { data: mySchedules } = await clientSupabase
-    .from('schedules')
-    .select('group_id')
-    .eq('teacher_id', currentUser.id);
-  
+    .from('schedules').select('group_id').eq('teacher_id', currentUser.id);
+
   const myGroupIds = mySchedules ? [...new Set(mySchedules.map(s => s.group_id))] : [];
 
   let myStudents = [];
   if (myGroupIds.length > 0) {
     const { data: students } = await clientSupabase
-      .from('users')
-      .select('*, groups(name)')
-      .eq('role', 'student')
-      .in('group_id', myGroupIds);
+      .from('users').select('*, groups(name)').eq('role', 'student').in('group_id', myGroupIds);
     myStudents = students || [];
   }
 
   content.innerHTML = `
-    <h2>ПАНЕЛЬ УЧИТЕЛЯ</h2>
-    <p style="color: rgba(0,0,0,0.6); margin-bottom: 40px;">Добро пожаловать, ${currentUser.full_name}</p>
-    
+    <h2>${t('dash.teacher')}</h2>
+    <p style="color: rgba(0,0,0,0.6); margin-bottom: 40px;">${t('dash.welcome')}, ${currentUser.full_name}</p>
     <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-value">${teacherSubjects?.length || 0}</div>
-        <div class="stat-label">ПРЕДМЕТОВ</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value">${myGroupIds.length}</div>
-        <div class="stat-label">ГРУПП</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value">${myStudents.length}</div>
-        <div class="stat-label">УЧЕНИКОВ</div>
-      </div>
+      <div class="stat-card"><div class="stat-value">${teacherSubjects?.length || 0}</div><div class="stat-label">${t('dash.subjects')}</div></div>
+      <div class="stat-card"><div class="stat-value">${myGroupIds.length}</div><div class="stat-label">${t('dash.groups')}</div></div>
+      <div class="stat-card"><div class="stat-value">${myStudents.length}</div><div class="stat-label">${t('dash.students')}</div></div>
     </div>
-
-    <h3 style="margin-top: 40px; margin-bottom: 20px; font-size: 20px; color: rgba(0,0,0,0.8);">МОИ ПРЕДМЕТЫ</h3>
+    <h3 style="margin-top: 40px; margin-bottom: 20px; font-size: 20px; color: rgba(0,0,0,0.8);">${t('dash.mySubjects')}</h3>
     <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 40px;">
       ${(teacherSubjects || []).map(ts => `
         <div class="subject-card" onclick="showSubjectGrades(${ts.subject_id}, '${ts.subjects.name}')">
           <div style="font-size: 16px; font-weight: 700; color: #000;">${ts.subjects.name}</div>
-          <div style="font-size: 11px; color: #888; margin-top: 4px;">Нажмите для журнала</div>
+          <div style="font-size: 11px; color: #888; margin-top: 4px;">${t('dash.clickJournal')}</div>
         </div>
       `).join('')}
     </div>
-
-    <h3 style="margin-top: 40px; margin-bottom: 20px; font-size: 20px; color: rgba(0,0,0,0.8);">БЫСТРЫЕ ДЕЙСТВИЯ</h3>
+    <h3 style="margin-top: 40px; margin-bottom: 20px; font-size: 20px; color: rgba(0,0,0,0.8);">${t('dash.quickActions')}</h3>
     <div class="btn-group">
-      <button onclick="showTeacherGrades()">📊 Журнал оценок</button>
-      <button onclick="showTeacherAssignments()">📝 Мои задания</button>
-      <button onclick="showTeacherMaterials()">📚 Мои материалы</button>
-      <button onclick="showTeacherAttendance()">✅ Посещаемость</button>
+      <button onclick="showTeacherGrades()">${t('dash.journalBtn')}</button>
+      <button onclick="showTeacherAssignments()">${t('dash.assignmentsBtn')}</button>
+      <button onclick="showTeacherMaterials()">${t('dash.materialsBtn')}</button>
+      <button onclick="showTeacherAttendance()">${t('dash.attendanceBtn')}</button>
     </div>
-
-    <h3 style="margin-top: 40px; margin-bottom: 20px; font-size: 20px; color: rgba(0,0,0,0.8);">МОИ УЧЕНИКИ</h3>
-    ${myStudents.length === 0 
-      ? '<p style="color:rgba(0,0,0,0.4);">Нет учеников в ваших группах</p>'
+    <h3 style="margin-top: 40px; margin-bottom: 20px; font-size: 20px; color: rgba(0,0,0,0.8);">${t('dash.myStudents')}</h3>
+    ${myStudents.length === 0
+      ? `<p style="color:rgba(0,0,0,0.4);">${t('dash.noStudents')}</p>`
       : `<table>
-          <thead><tr><th>ФИО</th><th>Группа</th><th>Действия</th></tr></thead>
+          <thead><tr><th>ФИО</th><th>${t('dash.groups')}</th><th></th></tr></thead>
           <tbody>
             ${myStudents.map(s => `
               <tr>
                 <td>${s.full_name}</td>
                 <td>${s.groups?.name || '-'}</td>
-                <td><button class="small" onclick="addGradeForStudent(${s.id}, '${s.full_name.replace(/'/g,"\\'")}')">Поставить оценку</button></td>
+                <td><button class="small" onclick="addGradeForStudent(${s.id}, '${s.full_name.replace(/'/g,"\\'")}')">
+                  ${t('dash.gradeBtn')}
+                </button></td>
               </tr>
             `).join('')}
           </tbody>
@@ -450,12 +544,12 @@ async function showStudentDashboard(content) {
   const assignmentColor = assignmentPercent >= 80 ? 'high' : assignmentPercent >= 60 ? 'medium' : 'low';
 
   content.innerHTML = `
-    <h2>ПАНЕЛЬ УЧЕНИКА</h2>
-    <p style="text-align: center; color: rgba(0,0,0,0.6); margin: 40px 0;">Добро пожаловать, ${currentUser.full_name}</p>
+    <h2>${t('dash.student')}</h2>
+    <p style="text-align: center; color: rgba(0,0,0,0.6); margin: 40px 0;">${t('dash.welcome')}, ${currentUser.full_name}</p>
     
     <div class="gpa-display-new">
       <div class="gpa-number">${gpa.toFixed(2)}</div>
-      <div class="gpa-label">Средний GPA</div>
+      <div class="gpa-label">${t('dash.gpaLabel')}</div>
       <div class="progress-item">
         <div class="progress-bar-container">
           <div class="progress-bar ${gpaColor}" style="width: 0%" data-width="${gpaPercent}"></div>
@@ -468,11 +562,11 @@ async function showStudentDashboard(content) {
     </div>
 
     <div class="progress-section">
-      <h3 style="font-size: 24px; color: #000; margin-bottom: 30px;">📊 ОБЩАЯ УСПЕВАЕМОСТЬ</h3>
+    <h3 style="font-size: 24px; color: #000; margin-bottom: 30px;">${t('dash.performance')}</h3>
       
       <div class="progress-item">
         <div class="progress-header">
-          <span class="progress-label">Посещаемость</span>
+          <span class="progress-label">${t('dash.attendanceLbl')}</span>
           <span class="progress-value">${attendancePercent.toFixed(0)}%</span>
         </div>
         <div class="progress-bar-container">
@@ -487,7 +581,7 @@ async function showStudentDashboard(content) {
 
       <div class="progress-item">
         <div class="progress-header">
-          <span class="progress-label">Выполнение заданий</span>
+          <span class="progress-label">${t('dash.assignmentLbl')}</span>
           <span class="progress-value">${assignmentPercent.toFixed(0)}%</span>
         </div>
         <div class="progress-bar-container">
@@ -501,7 +595,7 @@ async function showStudentDashboard(content) {
       </div>
     </div>
 
-    <h3 style="font-size: 24px; color: #000; margin: 60px 0 30px;">📚 УСПЕВАЕМОСТЬ ПО ПРЕДМЕТАМ</h3>
+    <h3 style="font-size: 24px; color: #000; margin: 60px 0 30px;">${t('dash.bySubject')}</h3>
     <div class="circular-progress-grid">
       ${Object.keys(subjectStats).map(subjectName => {
         const stats = subjectStats[subjectName];
@@ -531,12 +625,12 @@ async function showStudentDashboard(content) {
       }).join('')}
     </div>
 
-    <h3 style="margin-top: 60px; margin-bottom: 20px; font-size: 24px; color: #000;">БЫСТРЫЕ ДЕЙСТВИЯ</h3>
+    <h3 style="margin-top: 60px; margin-bottom: 20px; font-size: 24px; color: #000;">${t('dash.quickActions')}</h3>
     <div class="btn-group">
-      <button onclick="showGrades()">Мои оценки</button>
-      <button onclick="showSchedule()">Расписание</button>
-      <button onclick="showAssignments()">Задания</button>
-      <button onclick="showMaterials()">Материалы</button>
+      <button onclick="showGrades()">${t('dash.gradesBtn')}</button>
+      <button onclick="showSchedule()">${t('dash.scheduleBtn')}</button>
+      <button onclick="showAssignments()">${t('dash.assignmentsBtn2')}</button>
+      <button onclick="showMaterials()">${t('dash.materialsBtn2')}</button>
     </div>
   `;
 

@@ -74,8 +74,12 @@
         <div class="nav-brand">ЭЛЕКТРОННЫЙ ЖУРНАЛ</div>
         <div class="nav-menu" id="nav-menu"></div>
         <div class="nav-user">
-          <div class="theme-toggle" id="theme-toggle" title="Переключить тему">
-            <span id="theme-icon">🌙</span>
+          <div class="lang-switcher">
+            <button class="lang-btn" data-lang="kz" onclick="setLang('kz')">KZ</button>
+            <span class="lang-sep">|</span>
+            <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
+            <span class="lang-sep">|</span>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
           </div>
           <span id="user-name"></span>
           <button id="logout-btn">ВЫЙТИ</button>
