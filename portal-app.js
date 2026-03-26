@@ -313,10 +313,15 @@ async function handleLogin(e) {
 
 function handleLogout() {
   currentUser = null;
+  aiMessages = [];
+  aiChatOpen = false;
+  const w = document.getElementById('ai-widget');
+  if (w) w.style.display = 'none';
+  const panel = document.getElementById('ai-panel');
+  if (panel) { panel.classList.remove('open'); const body = document.getElementById('ai-body'); if (body) body.innerHTML = ''; }
   document.getElementById('login-page').style.display = 'flex';
   document.getElementById('dashboard-page').style.display = 'none';
   document.getElementById('login-form').reset();
-  // Сброс dropdown
   const label = document.getElementById('login-dropdown-label');
   if (label) label.textContent = 'Выберите пользователя';
   const trigger = document.getElementById('login-dropdown-trigger');
@@ -398,6 +403,15 @@ async function showDashboard() {
   });
 
   updateNavigation();
+
+  // AI виджет — только для admin
+  if (currentUser.role === 'admin') {
+    injectAIWidget();
+    document.getElementById('ai-widget').style.display = 'block';
+  } else {
+    const w = document.getElementById('ai-widget');
+    if (w) w.style.display = 'none';
+  }
 
   const content = document.getElementById('content');
   if (currentUser.role === 'admin') {
@@ -2365,6 +2379,292 @@ async function showTeacherAttendance() {
 function viewAssignmentSubmissions(id) {
   alert(`Просмотр сданных заданий ID: ${id} - функция в разработке`);
 }
+
+// ══════════════════════════════════════════════════════
+//  AI ASSISTANT — Narxoz Admin Bot
+// ══════════════════════════════════════════════════════
+
+const AI_KNOWLEDGE = {
+  ru: {
+    greeting: 'Привет! Я AI-ассистент портала Narxoz College. Помогу с управлением пользователями, расписанием, новостями и аналитикой. Что вас интересует?',
+    topics: {
+      users: {
+        keywords: ['пользовател', 'логин', 'аккаунт', 'создать', 'удалить', 'редактировать', 'email', 'роль', 'фио', 'студент', 'админ'],
+        answers: [
+          'Для создания пользователя перейдите в раздел **Пользователи** → кнопка «Создать пользователя».',
+          '**Правила заполнения ФИО:** Фамилия Имя Отчество — каждое слово с заглавной буквы. Пример: *Асанов Берик Маратович*',
+          '**Формат логина:** используйте транслитерацию фамилии строчными буквами. Пример: *asanov*, *akhmetova*',
+          '**Email:** все адреса должны быть в домене @narxoz.kz. Пример: *b.asanov@narxoz.kz*',
+          '**Роли:** ADMIN — полный доступ к системе; TEACHER — журнал, расписание, задания; STUDENT — просмотр оценок и расписания.',
+          'Для удаления пользователя нажмите кнопку **Удалить** в таблице. Действие необратимо — убедитесь в правильности выбора.',
+          'При редактировании можно изменить ФИО, email, телефон и группу (для студентов). Пароль меняется отдельно.'
+        ]
+      },
+      schedule: {
+        keywords: ['расписани', 'занятие', 'аудитори', 'кабинет', 'время', 'урок', 'группа', 'кесте'],
+        answers: [
+          'Для просмотра расписания перейдите в раздел **Расписание** и выберите группу.',
+          'Чтобы добавить занятие: Расписание → «Создать занятие» → выберите группу, предмет, учителя, день недели, время и кабинет.',
+          '**Формат времени:** используйте 24-часовой формат. Пример: 08:00 — 09:30',
+          'Занятия можно удалить прямо из таблицы расписания группы кнопкой **Удалить**.',
+          'Каждый учитель видит только своё расписание. Студент — расписание своей группы.'
+        ]
+      },
+      news: {
+        keywords: ['новост', 'объявлени', 'публикац', 'текст', 'написать', 'составить', 'анонс', 'жаңалық'],
+        answers: [
+          'Для публикации новости: раздел **Новости** → «Создать новость» → заполните заголовок, текст, категорию.',
+          'Чтобы закрепить важное объявление — поставьте галочку **«Закрепить новость»**.',
+          'Черновик сохраняется без публикации — снимите галочку «Опубликовать сразу».',
+          'Я могу помочь составить текст новости. Напишите тему, и я подготовлю официальный текст.'
+        ]
+      },
+      analytics: {
+        keywords: ['аналитик', 'график', 'gpa', 'успеваемост', 'посещаемост', 'статистик', 'отчёт', 'данные'],
+        answers: [
+          '**GPA** (Grade Point Average) — средний балл по шкале 0–4.0. Отлично: 3.5–4.0, Хорошо: 2.5–3.4, Удовлетворительно: 1.5–2.4.',
+          'График **«GPA по группам»** показывает сравнение успеваемости между группами ПО-231 и ПО-336.',
+          '**Посещаемость** считается за последние 7 дней. Норма — выше 80%. Ниже 60% — критический уровень.',
+          'Раздел **«Топ-5 студентов»** отображает лучших по среднему GPA из итоговых оценок.',
+          'График **«Задания по предметам»** показывает нагрузку — по каким предметам задано больше всего работ.',
+          'Для экспорта данных используйте браузерную печать (Ctrl+P) — страница оптимизирована для PDF.'
+        ]
+      }
+    },
+    newsTemplates: {
+      keywords: ['шаблон', 'пример', 'написать новость', 'составить объявление', 'текст для'],
+      generate: (topic) => `**Уважаемые студенты и преподаватели!**\n\nДоводим до вашего сведения, что ${topic}.\n\nПросим отнестись к данной информации с должным вниманием.\n\nС уважением,\nАдминистрация Экономического колледжа НАРХОЗ`
+    },
+    unknown: 'Я не совсем понял вопрос. Попробуйте спросить про:\n• **Пользователи** — создание, логины, роли\n• **Расписание** — занятия, аудитории\n• **Новости** — публикации, шаблоны\n• **Аналитика** — GPA, посещаемость'
+  },
+  kz: {
+    greeting: 'Сәлем! Мен Narxoz College порталының AI-көмекшісімін. Пайдаланушыларды басқару, кесте, жаңалықтар және аналитика бойынша көмектесемін. Не қызықтырады?',
+    topics: {
+      users: {
+        keywords: ['пайдаланушы', 'логин', 'аккаунт', 'жасау', 'жою', 'өңдеу', 'email', 'рөл', 'аты', 'студент', 'әкімші'],
+        answers: [
+          'Пайдаланушы жасау үшін **Пайдаланушылар** бөліміне өтіп, «Пайдаланушы жасау» батырмасын басыңыз.',
+          '**Аты-жөн форматы:** Тегі Аты Әкесінің аты — әр сөз бас әріппен. Мысал: *Асанов Берік Маратұлы*',
+          '**Логин форматы:** тегінің транслитерациясын кіші әріппен жазыңыз. Мысал: *asanov*',
+          '**Email:** барлық мекенжайлар @narxoz.kz доменінде болуы керек.',
+          '**Рөлдер:** ADMIN — толық қол жеткізу; TEACHER — журнал, кесте; STUDENT — бағалар мен кестені қарау.'
+        ]
+      },
+      schedule: {
+        keywords: ['кесте', 'сабақ', 'аудитори', 'уақыт', 'топ'],
+        answers: [
+          'Кестені қарау үшін **Кесте** бөліміне өтіп, топты таңдаңыз.',
+          'Сабақ қосу үшін: Кесте → «Сабақ жасау» → топ, пән, мұғалім, апта күні, уақыт және аудиторияны таңдаңыз.',
+          'Уақыт форматы: 24 сағаттық. Мысал: 08:00 — 09:30'
+        ]
+      },
+      news: {
+        keywords: ['жаңалық', 'хабарландыру', 'жариялау', 'мәтін'],
+        answers: [
+          'Жаңалық жариялау үшін: **Жаңалықтар** → «Жаңалық жасау» → тақырып, мәтін, санатты толтырыңыз.',
+          'Маңызды хабарландыруды бекіту үшін **«Жаңалықты бекіту»** жалаушасын қойыңыз.'
+        ]
+      },
+      analytics: {
+        keywords: ['аналитика', 'график', 'gpa', 'үлгерім', 'қатысу', 'статистика'],
+        answers: [
+          '**GPA** — орташа балл 0–4.0 шкаласы бойынша. Үздік: 3.5–4.0, Жақсы: 2.5–3.4.',
+          'Қатысу соңғы 7 күн ішінде есептеледі. Норма — 80%-дан жоғары.',
+          '**«Топтар бойынша GPA»** графигі ПО-231 және ПО-336 топтарының үлгерімін салыстырады.'
+        ]
+      }
+    },
+    newsTemplates: {
+      keywords: ['үлгі', 'мысал', 'жаңалық жазу', 'хабарландыру жасау'],
+      generate: (topic) => `**Құрметті студенттер мен оқытушылар!**\n\n${topic} туралы хабарлаймыз.\n\nБұл ақпаратқа тиісті назар аударуларыңызды сұраймыз.\n\nҚұрметпен,\nНАРХОЗ Экономикалық колледжінің әкімшілігі`
+    },
+    unknown: 'Сұрақты түсінбедім. Мыналар туралы сұраңыз:\n• **Пайдаланушылар** — жасау, логиндер, рөлдер\n• **Кесте** — сабақтар, аудиториялар\n• **Жаңалықтар** — жариялау, үлгілер\n• **Аналитика** — GPA, қатысу'
+  },
+  en: {
+    greeting: 'Hello! I\'m the AI assistant for Narxoz College portal. I can help with user management, schedule, news and analytics. What do you need?',
+    topics: {
+      users: {
+        keywords: ['user', 'login', 'account', 'create', 'delete', 'edit', 'email', 'role', 'name', 'student', 'admin'],
+        answers: [
+          'To create a user, go to **Users** section → click "Create user" button.',
+          '**Full name format:** Last Name First Name Middle Name — each word capitalized. Example: *Asanov Berik Maratovich*',
+          '**Login format:** use lowercase transliteration of the last name. Example: *asanov*, *akhmetova*',
+          '**Email:** all addresses must use @narxoz.kz domain. Example: *b.asanov@narxoz.kz*',
+          '**Roles:** ADMIN — full system access; TEACHER — journal, schedule, assignments; STUDENT — view grades and schedule.',
+          'To delete a user, click **Delete** in the table. This action is irreversible.',
+          'When editing, you can change full name, email, phone and group (for students).'
+        ]
+      },
+      schedule: {
+        keywords: ['schedule', 'class', 'room', 'time', 'lesson', 'group', 'teacher'],
+        answers: [
+          'To view schedule, go to **Schedule** section and select a group.',
+          'To add a class: Schedule → "Create class" → select group, subject, teacher, day, time and room.',
+          '**Time format:** use 24-hour format. Example: 08:00 — 09:30',
+          'Classes can be deleted directly from the group schedule table.'
+        ]
+      },
+      news: {
+        keywords: ['news', 'announcement', 'publish', 'text', 'write', 'post'],
+        answers: [
+          'To publish news: **News** section → "Create news" → fill in title, text, category.',
+          'To pin an important announcement — check **"Pin news"** checkbox.',
+          'Save as draft without publishing — uncheck "Publish immediately".',
+          'I can help write a news text. Tell me the topic and I\'ll prepare an official text.'
+        ]
+      },
+      analytics: {
+        keywords: ['analytics', 'chart', 'gpa', 'performance', 'attendance', 'statistics', 'report', 'data'],
+        answers: [
+          '**GPA** (Grade Point Average) — average score on a 0–4.0 scale. Excellent: 3.5–4.0, Good: 2.5–3.4, Satisfactory: 1.5–2.4.',
+          'The **"GPA by groups"** chart compares academic performance between groups PO-231 and PO-336.',
+          '**Attendance** is calculated for the last 7 days. Normal — above 80%. Below 60% — critical level.',
+          'The **"Top 5 students"** section shows the best students by average GPA from final grades.',
+          'The **"Assignments by subject"** chart shows workload — which subjects have the most assignments.'
+        ]
+      }
+    },
+    newsTemplates: {
+      keywords: ['template', 'example', 'write news', 'draft announcement', 'text for'],
+      generate: (topic) => `**Dear students and faculty,**\n\nWe would like to inform you that ${topic}.\n\nPlease pay due attention to this information.\n\nBest regards,\nAdministration of Narxoz Economic College`
+    },
+    unknown: 'I didn\'t quite understand. Try asking about:\n• **Users** — creation, logins, roles\n• **Schedule** — classes, rooms\n• **News** — publications, templates\n• **Analytics** — GPA, attendance'
+  }
+};
+
+let aiChatOpen = false;
+let aiMessages = [];
+
+function getAIResponse(userMsg) {
+  const lang = currentLang || 'ru';
+  const kb = AI_KNOWLEDGE[lang] || AI_KNOWLEDGE.ru;
+  const msg = userMsg.toLowerCase();
+
+  // Проверяем шаблоны новостей
+  const tmpl = kb.newsTemplates;
+  if (tmpl.keywords.some(k => msg.includes(k))) {
+    // Извлекаем тему после ключевого слова
+    const topicMatch = userMsg.match(/(?:про|о|об|тема|topic|туралы|жайлы)[:\s]+(.+)/i);
+    const topic = topicMatch ? topicMatch[1].trim() : (lang === 'ru' ? 'важное событие' : lang === 'kz' ? 'маңызды оқиға' : 'an important event');
+    return '📝 ' + tmpl.generate(topic);
+  }
+
+  // Ищем совпадение по темам
+  for (const [, topic] of Object.entries(kb.topics)) {
+    if (topic.keywords.some(k => msg.includes(k))) {
+      const answers = topic.answers;
+      return answers[Math.floor(Math.random() * answers.length)];
+    }
+  }
+
+  // Приветствие
+  if (['привет','сәлем','hello','hi','здравствуй','сал'].some(k => msg.includes(k))) {
+    return kb.greeting;
+  }
+
+  return kb.unknown;
+}
+
+function renderAIMessage(msg, isUser) {
+  // Простой markdown: **bold**, *italic*, \n → <br>
+  let html = msg
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
+  return `
+    <div class="ai-msg ${isUser ? 'ai-msg--user' : 'ai-msg--bot'}">
+      ${!isUser ? '<div class="ai-msg-avatar">🤖</div>' : ''}
+      <div class="ai-msg-bubble">${html}</div>
+      ${isUser ? '<div class="ai-msg-avatar ai-msg-avatar--user">👤</div>' : ''}
+    </div>`;
+}
+
+function sendAIMessage() {
+  const input = document.getElementById('ai-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const body = document.getElementById('ai-body');
+  aiMessages.push({ text, isUser: true });
+  body.innerHTML += renderAIMessage(text, true);
+  input.value = '';
+
+  // Typing indicator
+  const typingId = 'ai-typing-' + Date.now();
+  body.innerHTML += `<div id="${typingId}" class="ai-msg ai-msg--bot"><div class="ai-msg-avatar">🤖</div><div class="ai-msg-bubble ai-typing"><span></span><span></span><span></span></div></div>`;
+  body.scrollTop = body.scrollHeight;
+
+  setTimeout(() => {
+    const typing = document.getElementById(typingId);
+    if (typing) typing.remove();
+    const response = getAIResponse(text);
+    aiMessages.push({ text: response, isUser: false });
+    body.innerHTML += renderAIMessage(response, false);
+    body.scrollTop = body.scrollHeight;
+  }, 600 + Math.random() * 400);
+}
+
+function toggleAIChat() {
+  aiChatOpen = !aiChatOpen;
+  const panel = document.getElementById('ai-panel');
+  const btn = document.getElementById('ai-fab');
+  panel.classList.toggle('open', aiChatOpen);
+  btn.classList.toggle('open', aiChatOpen);
+
+  if (aiChatOpen && aiMessages.length === 0) {
+    // Приветственное сообщение
+    const lang = currentLang || 'ru';
+    const kb = AI_KNOWLEDGE[lang] || AI_KNOWLEDGE.ru;
+    const body = document.getElementById('ai-body');
+    body.innerHTML += renderAIMessage(kb.greeting, false);
+    aiMessages.push({ text: kb.greeting, isUser: false });
+  }
+
+  if (aiChatOpen) {
+    setTimeout(() => document.getElementById('ai-input')?.focus(), 200);
+  }
+}
+
+function injectAIWidget() {
+  if (document.getElementById('ai-fab')) return;
+
+  const widget = document.createElement('div');
+  widget.id = 'ai-widget';
+  widget.innerHTML = `
+    <div id="ai-panel">
+      <div class="ai-header">
+        <div class="ai-header-info">
+          <div class="ai-header-avatar">🤖</div>
+          <div>
+            <div class="ai-header-name">Narxoz AI</div>
+            <div class="ai-header-status">● Online</div>
+          </div>
+        </div>
+        <button class="ai-close-btn" onclick="toggleAIChat()">✕</button>
+      </div>
+      <div class="ai-body" id="ai-body"></div>
+      <div class="ai-footer">
+        <input id="ai-input" class="ai-input" placeholder="${currentLang === 'kz' ? 'Сұрақ жазыңыз...' : currentLang === 'en' ? 'Type your question...' : 'Задайте вопрос...'}" 
+          onkeydown="if(event.key==='Enter')sendAIMessage()">
+        <button class="ai-send-btn" onclick="sendAIMessage()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+    <button id="ai-fab" onclick="toggleAIChat()" title="AI Ассистент">
+      <span class="ai-fab-icon">🤖</span>
+      <span class="ai-fab-close">✕</span>
+    </button>
+  `;
+  document.body.appendChild(widget);
+}
+
+// Показываем виджет только для admin
+const _origShowDashboard = showDashboard;
+// Инжектируем виджет при входе
+document.addEventListener('DOMContentLoaded', () => {});
+
+// ── end AI Assistant ───────────────────────────────────
 
 // Initialize on load
 window.addEventListener('load', initSupabase);
