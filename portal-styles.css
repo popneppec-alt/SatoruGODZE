@@ -655,221 +655,288 @@ table button { margin: 0 5px; }
 .circular-subject-info { font-size: 12px; color: rgba(0,0,0,0.6); }
 
 /* ============================================
-   АДАПТИВНОСТЬ ДЛЯ МОБИЛЬНЫХ
+   АДАПТИВНОСТЬ — ПОЛНАЯ ПЕРЕРАБОТКА
    ============================================ */
 
+/* ── Hamburger (только мобильный) ── */
+.nav-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: 1.5px solid rgba(0,0,0,0.12);
+  border-radius: 10px;
+  padding: 8px;
+  cursor: pointer;
+  min-height: unset;
+  box-shadow: none;
+  margin: 0;
+  flex-shrink: 0;
+}
+.nav-hamburger:hover { background: rgba(176,16,48,0.06); transform: none; box-shadow: none; }
+.nav-hamburger span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: #333;
+  border-radius: 2px;
+  transition: all 0.25s ease;
+}
+.nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ── Tablet: 1024px ── */
+@media (max-width: 1024px) {
+  .navbar { padding: 14px 24px; }
+  .container { padding: 32px 24px; }
+  .panel { padding: 32px 28px; }
+  .nav-menu { margin: 0 16px; gap: 6px; }
+  .nav-menu button { padding: 8px 14px; font-size: 11px; }
+  .an-kpi-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Mobile: 768px ── */
 @media (max-width: 768px) {
 
-  /* Страница входа */
+  /* === СТРАНИЦА ВХОДА === */
   #login-page {
     justify-content: center;
-    padding: 20px;
-    background-attachment: scroll; /* fix для iOS */
-    background-size: cover;
-    background-position: center center;
     align-items: center;
+    padding: 16px;
+    background-attachment: scroll;
+    background-position: center center;
   }
 
   .logo {
-    top: 20px;
+    top: 16px;
     left: 50%;
     transform: translateX(-50%);
   }
-
-  .logo-image {
-    width: 80px;
-    height: 80px;
-  }
+  .logo-image { width: 64px; height: 64px; }
 
   .login-container {
-    max-width: 100%;
-    width: 92%;
-    padding: 30px 24px;
-    margin-top: 100px;
+    width: 100%;
+    max-width: 420px;
+    padding: 28px 20px 24px;
+    margin-top: 88px;
+    border-radius: 20px;
   }
-
-  .login-container h1 {
-    font-size: 26px;
-    margin-bottom: 4px;
-  }
-
-  .role-cards {
-    gap: 8px;
-    margin-bottom: 20px;
-  }
-
-  .role-card {
-    padding: 14px 6px;
-    border-radius: 12px;
-  }
-
-  .role-icon {
-    font-size: 24px;
-  }
-
-  .role-title {
-    font-size: 9px;
-  }
+  .login-container h1 { font-size: 24px; letter-spacing: 1px; }
+  .login-subtitle { font-size: 10px; margin-bottom: 20px; }
 
   input, select, textarea {
     padding: 14px 16px;
     font-size: 16px; /* предотвращает zoom на iOS */
-    margin-bottom: 14px;
+    margin-bottom: 12px;
+    border-radius: 10px;
   }
+  button { padding: 15px; font-size: 13px; min-height: 50px; border-radius: 12px; }
 
-  button {
-    padding: 15px;
-    font-size: 13px;
-    min-height: 48px; /* удобно для пальца */
-  }
-
-  .test-accounts {
-    font-size: 11px;
-    padding: 14px;
-  }
-
-  /* Навбар */
+  /* === НАВБАР — HAMBURGER === */
   .navbar {
-    padding: 14px 16px;
-    flex-wrap: wrap;
-    gap: 8px;
+    padding: 12px 16px;
+    flex-wrap: nowrap;
+    gap: 0;
+    position: sticky;
+    top: 0;
   }
 
-  .nav-brand { font-size: 15px; }
+  .nav-brand {
+    font-size: 13px;
+    letter-spacing: 0;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
+  .nav-hamburger { display: flex; }
+
+  /* Меню скрыто по умолчанию, открывается по клику */
   .nav-menu {
-    order: 3;
-    width: 100%;
-    margin: 0;
-    flex-wrap: wrap;
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(255,255,255,0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    padding: 12px 16px;
+    flex-direction: column;
     gap: 6px;
+    z-index: 999;
+    margin: 0;
+    flex: unset;
+    width: 100%;
+  }
+  .nav-menu.open { display: flex; }
+  .nav-menu button {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 13px;
+    border-radius: 10px;
+    text-align: left;
+    justify-content: flex-start;
+    min-height: 44px;
   }
 
-  .nav-menu button {
-    padding: 7px 12px;
+  /* Правая часть навбара */
+  .nav-user {
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .nav-user > span { display: none; }
+  .nav-user > button {
+    padding: 8px 12px;
     font-size: 10px;
+    letter-spacing: 0.5px;
     min-height: unset;
   }
 
-  .nav-user { gap: 8px; }
-  .nav-user span { display: none; }
-  .nav-user button { padding: 8px 14px; font-size: 10px; }
+  /* Языковой переключатель в мобильном */
+  .lang-switcher { gap: 0; }
+  .lang-btn { padding: 6px 7px; font-size: 10px; }
+  .lang-sep { display: none; }
 
-  /* Контент */
-  .container {
-    padding: 24px 16px;
-  }
+  /* === КОНТЕНТ === */
+  .container { padding: 16px 12px; }
+  .panel { padding: 20px 16px; border-radius: 14px; margin-bottom: 16px; }
 
-  .panel {
-    padding: 24px 20px;
-  }
+  h2 { font-size: 20px; margin-bottom: 16px; }
+  h3 { font-size: 16px !important; }
 
-  h2 {
-    font-size: 24px;
-    margin-bottom: 24px;
-  }
-
-  /* Статистика */
+  /* === STAT CARDS === */
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    gap: 10px;
+    margin: 16px 0;
   }
+  .stat-card { padding: 20px 12px; border-radius: 14px; }
+  .stat-value { font-size: 32px; letter-spacing: -1px; margin-bottom: 6px; }
+  .stat-label { font-size: 9px; letter-spacing: 1.5px; }
 
-  .stat-card {
-    padding: 24px 16px;
-  }
+  /* === GPA === */
+  .gpa-display-new { margin: 32px 0; }
+  .gpa-number { font-size: 52px; }
+  .gpa-label { font-size: 11px; letter-spacing: 2px; }
 
-  .stat-value {
-    font-size: 36px;
-  }
+  /* === ПРОГРЕСС-БАРЫ === */
+  .progress-section { margin: 32px 0; }
+  .progress-item { margin-bottom: 20px; }
+  .progress-label { font-size: 13px; }
+  .progress-value { font-size: 14px; }
+  .progress-bar-container { height: 22px; }
+  .progress-tooltip { display: none; } /* на тач не нужен hover */
 
-  /* GPA */
-  .gpa-number {
-    font-size: 56px;
-  }
-
-  /* Таблицы — горизонтальный скролл */
+  /* === ТАБЛИЦЫ === */
   table {
     display: block;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    white-space: nowrap;
+    border-radius: 10px;
   }
+  /* Минимальная ширина чтобы не сжималось */
+  table thead, table tbody, table tr { min-width: 480px; }
+  th, td { padding: 10px 12px; font-size: 12px; white-space: nowrap; }
+  th { font-size: 9px; }
 
-  th, td {
-    padding: 12px 16px;
-    font-size: 13px;
-  }
-
-  /* Кнопки действий */
-  .btn-group {
-    flex-wrap: wrap;
-  }
-
+  /* === КНОПКИ === */
+  .btn-group { gap: 8px; margin: 16px 0; }
   .btn-group button {
-    flex: 1;
-    min-width: 140px;
-    min-height: 48px;
-  }
-
-  button.small {
-    padding: 8px 12px;
+    flex: 1 1 calc(50% - 4px);
+    min-width: 0;
+    padding: 11px 12px;
     font-size: 11px;
-    min-height: 36px;
+    letter-spacing: 0.3px;
+    min-height: 44px;
+  }
+  button.small {
+    padding: 7px 10px;
+    font-size: 10px;
+    min-height: 32px;
+    margin: 0 2px;
   }
 
-  /* Круговые прогресс-бары */
+  /* === SUBJECT CARDS === */
+  .subject-card {
+    padding: 14px 18px;
+    font-size: 13px;
+    width: 100%;
+  }
+
+  /* === КРУГОВЫЕ ПРОГРЕСС-БАРЫ === */
   .circular-progress-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    gap: 10px;
+    margin: 20px 0;
   }
+  .circular-progress-item { padding: 14px 10px; border-radius: 12px; }
+  .circular-progress { width: 100px; height: 100px; }
+  .circular-progress svg { width: 100px; height: 100px; }
+  .circular-progress-text { font-size: 20px; }
+  .circular-subject-name { font-size: 12px; margin-bottom: 4px; }
+  .circular-subject-info { font-size: 10px; }
 
-  .circular-progress-item {
-    padding: 16px;
+  /* === АНАЛИТИКА === */
+  .an-kpi-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin: 16px 0 20px;
   }
+  .an-kpi-card { padding: 14px 14px; gap: 10px; border-radius: 12px; }
+  .an-kpi-icon { width: 36px; height: 36px; border-radius: 8px; }
+  .an-kpi-icon svg { width: 16px; height: 16px; }
+  .an-kpi-value { font-size: 20px; }
+  .an-kpi-label { font-size: 10px; }
 
-  .circular-progress {
-    width: 110px;
-    height: 110px;
+  .analytics-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 16px;
   }
+  .analytics-card { padding: 18px 16px; border-radius: 14px; }
 
-  .circular-progress svg {
-    width: 110px;
-    height: 110px;
-  }
+  /* === КАРТА === */
+  .map-section { margin-top: 24px; }
+  .map-section iframe { height: 220px; }
 
-  .circular-progress-text {
-    font-size: 24px;
+  /* === ФУТЕР === */
+  .site-footer { padding: 36px 0 28px; }
+  .footer-inner {
+    grid-template-columns: 1fr;
+    padding: 0 16px;
+    gap: 28px;
   }
+  .footer-col--center { align-items: flex-start; text-align: left; }
+  .footer-brand-name { font-size: 16px; }
+  .footer-logo { width: 40px; height: 40px; }
 
-  /* Прогресс-бары */
-  .progress-label {
-    font-size: 14px;
-  }
-
-  .progress-value {
-    font-size: 15px;
-  }
-
-  /* Модальные окна */
-  .modal-content {
-    padding: 24px 20px;
-    width: 95%;
-  }
+  /* === МОДАЛЬНЫЕ ОКНА === */
+  .modal-content { padding: 20px 16px; width: 96%; border-radius: 14px; }
 }
 
+/* ── Small phones: 400px ── */
 @media (max-width: 400px) {
-  .stats-grid {
-    grid-template-columns: 1fr 1fr;
-  }
+  .login-container { padding: 24px 16px; }
+  .login-container h1 { font-size: 22px; }
 
-  .circular-progress-grid {
-    grid-template-columns: 1fr 1fr;
-  }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .stat-value { font-size: 28px; }
 
-  .login-container h1 {
-    font-size: 24px;
-  }
+  .circular-progress-grid { grid-template-columns: repeat(2, 1fr); }
+  .circular-progress { width: 88px; height: 88px; }
+  .circular-progress svg { width: 88px; height: 88px; }
+  .circular-progress-text { font-size: 18px; }
+
+  .an-kpi-row { grid-template-columns: repeat(2, 1fr); }
+  .btn-group button { flex: 1 1 100%; }
 }
 
 /* ============================================

@@ -242,6 +242,11 @@ document.addEventListener('click', function(e) {
     document.getElementById('login-dropdown-trigger')?.classList.remove('open');
     document.getElementById('login-dropdown-arrow')?.classList.remove('open');
   }
+  // Закрыть мобильное меню при клике вне навбара
+  const navbar = document.querySelector('.navbar');
+  if (navbar && !navbar.contains(e.target)) {
+    closeMobileMenu();
+  }
 });
 
 // Role selection — только очищает поле, не подставляет логин
@@ -324,34 +329,48 @@ function handleLogout() {
 }
 
 
+// Mobile hamburger menu
+function toggleMobileMenu() {
+  const menu = document.getElementById('nav-menu');
+  const btn = document.getElementById('nav-hamburger');
+  const isOpen = menu.classList.contains('open');
+  menu.classList.toggle('open', !isOpen);
+  btn.classList.toggle('open', !isOpen);
+}
+
+function closeMobileMenu() {
+  document.getElementById('nav-menu')?.classList.remove('open');
+  document.getElementById('nav-hamburger')?.classList.remove('open');
+}
+
 // Navigation
 function updateNavigation() {
   const navMenu = document.getElementById('nav-menu');
-  let menuHTML = `<button onclick="showDashboard()" class="${currentView === 'dashboard' ? 'active' : ''}">${t('nav.home')}</button>`;
+  let menuHTML = `<button onclick="showDashboard();closeMobileMenu()" class="${currentView === 'dashboard' ? 'active' : ''}">${t('nav.home')}</button>`;
 
   if (currentUser.role === 'student') {
     menuHTML += `
-      <button onclick="showGrades()" class="${currentView === 'grades' ? 'active' : ''}">${t('nav.grades')}</button>
-      <button onclick="showSchedule()" class="${currentView === 'schedule' ? 'active' : ''}">${t('nav.schedule')}</button>
-      <button onclick="showAssignments()" class="${currentView === 'assignments' ? 'active' : ''}">${t('nav.assignments')}</button>
-      <button onclick="showMaterials()" class="${currentView === 'materials' ? 'active' : ''}">${t('nav.materials')}</button>
-      <button onclick="showNews()" class="${currentView === 'news' ? 'active' : ''}">${t('nav.news')}</button>
+      <button onclick="showGrades();closeMobileMenu()" class="${currentView === 'grades' ? 'active' : ''}">${t('nav.grades')}</button>
+      <button onclick="showSchedule();closeMobileMenu()" class="${currentView === 'schedule' ? 'active' : ''}">${t('nav.schedule')}</button>
+      <button onclick="showAssignments();closeMobileMenu()" class="${currentView === 'assignments' ? 'active' : ''}">${t('nav.assignments')}</button>
+      <button onclick="showMaterials();closeMobileMenu()" class="${currentView === 'materials' ? 'active' : ''}">${t('nav.materials')}</button>
+      <button onclick="showNews();closeMobileMenu()" class="${currentView === 'news' ? 'active' : ''}">${t('nav.news')}</button>
     `;
   } else if (currentUser.role === 'teacher') {
     menuHTML += `
-      <button onclick="showTeacherGrades()" class="${currentView === 'grades' ? 'active' : ''}">${t('nav.journal')}</button>
-      <button onclick="showSchedule()" class="${currentView === 'schedule' ? 'active' : ''}">${t('nav.schedule')}</button>
-      <button onclick="showTeacherAssignments()" class="${currentView === 'assignments' ? 'active' : ''}">${t('nav.assignments')}</button>
-      <button onclick="showTeacherMaterials()" class="${currentView === 'materials' ? 'active' : ''}">${t('nav.materials')}</button>
-      <button onclick="showTeacherAttendance()" class="${currentView === 'attendance' ? 'active' : ''}">${t('nav.attendance')}</button>
-      <button onclick="showNews()" class="${currentView === 'news' ? 'active' : ''}">${t('nav.news')}</button>
+      <button onclick="showTeacherGrades();closeMobileMenu()" class="${currentView === 'grades' ? 'active' : ''}">${t('nav.journal')}</button>
+      <button onclick="showSchedule();closeMobileMenu()" class="${currentView === 'schedule' ? 'active' : ''}">${t('nav.schedule')}</button>
+      <button onclick="showTeacherAssignments();closeMobileMenu()" class="${currentView === 'assignments' ? 'active' : ''}">${t('nav.assignments')}</button>
+      <button onclick="showTeacherMaterials();closeMobileMenu()" class="${currentView === 'materials' ? 'active' : ''}">${t('nav.materials')}</button>
+      <button onclick="showTeacherAttendance();closeMobileMenu()" class="${currentView === 'attendance' ? 'active' : ''}">${t('nav.attendance')}</button>
+      <button onclick="showNews();closeMobileMenu()" class="${currentView === 'news' ? 'active' : ''}">${t('nav.news')}</button>
     `;
   } else if (currentUser.role === 'admin') {
     menuHTML += `
-      <button onclick="showUsers()" class="${currentView === 'users' ? 'active' : ''}">${t('nav.users')}</button>
-      <button onclick="showAdminSchedule()" class="${currentView === 'schedule' ? 'active' : ''}">${t('nav.schedule')}</button>
-      <button onclick="showAdminNews()" class="${currentView === 'news' ? 'active' : ''}">${t('nav.news')}</button>
-      <button onclick="showAnalytics()" class="${currentView === 'analytics' ? 'active' : ''}">${t('nav.analytics')}</button>
+      <button onclick="showUsers();closeMobileMenu()" class="${currentView === 'users' ? 'active' : ''}">${t('nav.users')}</button>
+      <button onclick="showAdminSchedule();closeMobileMenu()" class="${currentView === 'schedule' ? 'active' : ''}">${t('nav.schedule')}</button>
+      <button onclick="showAdminNews();closeMobileMenu()" class="${currentView === 'news' ? 'active' : ''}">${t('nav.news')}</button>
+      <button onclick="showAnalytics();closeMobileMenu()" class="${currentView === 'analytics' ? 'active' : ''}">${t('nav.analytics')}</button>
     `;
   }
 
