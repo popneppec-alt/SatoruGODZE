@@ -390,8 +390,8 @@ async function showDashboard() {
   window.scrollTo(0, 0);
 
   document.getElementById('user-name').textContent = currentUser.full_name;
-  document.getElementById('logout-btn').onclick = handleLogout;
-  document.getElementById('logout-btn').textContent = t('logout');
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) { logoutBtn.onclick = handleLogout; logoutBtn.textContent = t('logout'); }
 
   // Бренд
   const brand = document.getElementById('nav-brand');

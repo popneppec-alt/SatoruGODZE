@@ -488,6 +488,9 @@ button:active {
 
 .nav-user { display: flex; align-items: center; gap: 12px; }
 .nav-user span { color: #555; font-size: 13px; font-weight: 500; }
+/* Десктоп: полная кнопка видна, иконка скрыта */
+.logout-mobile { display: none; }
+.logout-desktop { display: flex; }
 .nav-user button {
   width: auto;
   padding: 9px 22px;
@@ -799,6 +802,25 @@ table button { margin: 0 5px; }
     letter-spacing: 0.5px;
     min-height: unset;
   }
+  /* На мобильном: скрываем полную кнопку, показываем иконку */
+  .logout-desktop { display: none !important; }
+  .logout-mobile {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 10px;
+    background: rgba(176,16,48,0.08);
+    border: 1.5px solid rgba(176,16,48,0.2);
+    color: #b01030;
+    min-height: unset;
+    box-shadow: none;
+    margin: 0;
+    flex-shrink: 0;
+  }
+  .logout-mobile:hover { background: rgba(176,16,48,0.15); transform: none; box-shadow: none; }
 
   /* Языковой переключатель в мобильном */
   .lang-switcher { gap: 0; }
